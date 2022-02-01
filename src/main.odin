@@ -38,8 +38,8 @@ main :: proc() {
 	}
 
 	jumperText := create_text(renderer, titleFont, "JUMPER");
-	helpTextLine0 := create_text(renderer, helpFont, "Left/right arrows to move, space to jump!");
-	helpTextLine1 := create_text(renderer, helpFont, "Press any key to begin...");
+	helpText := create_text(renderer, helpFont, "Left/right arrows to move, space to jump!");
+	modeButtons := create_button_group(renderer, helpFont, { "Normal Mode", "Continuous Scrolling" });
 	
 	player: Player;
 	reset_game(&player);
@@ -97,9 +97,9 @@ main :: proc() {
 			sdl.set_render_draw_color(renderer, 50, 50, 50, 200);
 			sdl.render_fill_rect(renderer, &fillRect);
 			
-			draw_text(renderer, &jumperText, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 3);
-			draw_text(renderer, &helpTextLine0, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
-			draw_text(renderer, &helpTextLine1, SCREEN_WIDTH / 2, SCREEN_HEIGHT * 5 / 8);
+			draw_text(renderer, &jumperText, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 4);
+			draw_text(renderer, &helpText, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 3);
+			draw_button_group(&modeButtons, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
 		}
 
 		sdl.render_present(renderer);
