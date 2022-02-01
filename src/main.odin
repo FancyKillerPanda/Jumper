@@ -11,6 +11,8 @@ printf :: fmt.printf;
 SCREEN_WIDTH :: 720;
 SCREEN_HEIGHT :: 960;
 
+keysPressed: [sdl.Scancode.Num_Scancodes] bool;
+
 main :: proc() {
 	if !init_dependencies() do return;
 	defer quit_dependencies();
@@ -29,9 +31,13 @@ main :: proc() {
 			#partial switch (event.type) {
 			case sdl.Event_Type.Quit:
 				running = false;
-			}
 
-			handle_event(&player, &event);
+			case sdl.Event_Type.Key_Down:
+				keysPressed[event.key.keysym.scancode] = true;
+
+			case sdl.Event_Type.Key_Up:
+				keysPressed[event.key.keysym.scancode] = false;
+			}
 		}
 
 		// Timing
