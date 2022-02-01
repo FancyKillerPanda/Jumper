@@ -12,10 +12,6 @@ printf :: fmt.printf;
 SCREEN_WIDTH :: 720;
 SCREEN_HEIGHT :: 960;
 
-JUMPER_TEXT :: "JUMPER";
-HELP_TEXT_LINE_0 :: "Left/right arrows to move, space to jump!";
-HELP_TEXT_LINE_1 :: "Press any key to begin...";
-
 keysPressed: [sdl.Scancode.Num_Scancodes] bool;
 
 GameState :: enum {
@@ -41,12 +37,9 @@ main :: proc() {
 		return;
 	}
 
-	jumperSurface := sdl_ttf.render_text_solid(titleFont, JUMPER_TEXT, { 255, 255, 255, 255 });
-	jumperTexture := sdl.create_texture_from_surface(renderer, jumperSurface);
-	helpTextLine0Surface := sdl_ttf.render_text_solid(helpFont, HELP_TEXT_LINE_0, { 255, 255, 255, 255 });
-	helpTextLine0Texture := sdl.create_texture_from_surface(renderer, helpTextLine0Surface);
-	helpTextLine1Surface := sdl_ttf.render_text_solid(helpFont, HELP_TEXT_LINE_1, { 255, 255, 255, 255 });
-	helpTextLine1Texture := sdl.create_texture_from_surface(renderer, helpTextLine1Surface);
+	jumperText := create_text(renderer, titleFont, "JUMPER");
+	helpTextLine0 := create_text(renderer, helpFont, "Left/right arrows to move, space to jump!");
+	helpTextLine1 := create_text(renderer, helpFont, "Press any key to begin...");
 	
 	player: Player;
 	reset_game(&player);
@@ -104,26 +97,9 @@ main :: proc() {
 			sdl.set_render_draw_color(renderer, 50, 50, 50, 200);
 			sdl.render_fill_rect(renderer, &fillRect);
 			
-			jumperTextRect: sdl.Rect;
-			sdl_ttf.size_text(titleFont, JUMPER_TEXT, &jumperTextRect.w, &jumperTextRect.h);
-			jumperTextRect.x = (SCREEN_WIDTH / 2) - (jumperTextRect.w / 2);
-			jumperTextRect.y = (SCREEN_HEIGHT / 3) - (jumperTextRect.h / 2);
-
-			sdl.render_copy(renderer, jumperTexture, nil, &jumperTextRect);
-
-			helpTextLine0Rect: sdl.Rect;
-			sdl_ttf.size_text(helpFont, HELP_TEXT_LINE_0, &helpTextLine0Rect.w, &helpTextLine0Rect.h);
-			helpTextLine0Rect.x = (SCREEN_WIDTH / 2) - (helpTextLine0Rect.w / 2);
-			helpTextLine0Rect.y = (SCREEN_HEIGHT / 2) - (helpTextLine0Rect.h / 2);
-
-			sdl.render_copy(renderer, helpTextLine0Texture, nil, &helpTextLine0Rect);
-
-			helpTextLine1Rect: sdl.Rect;
-			sdl_ttf.size_text(helpFont, HELP_TEXT_LINE_1, &helpTextLine1Rect.w, &helpTextLine1Rect.h);
-			helpTextLine1Rect.x = (SCREEN_WIDTH / 2) - (helpTextLine1Rect.w / 2);
-			helpTextLine1Rect.y = (SCREEN_HEIGHT * 5 / 8) - (helpTextLine1Rect.h / 2);
-
-			sdl.render_copy(renderer, helpTextLine1Texture, nil, &helpTextLine1Rect);
+			draw_text(renderer, &jumperText, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 3);
+			draw_text(renderer, &helpTextLine0, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
+			draw_text(renderer, &helpTextLine1, SCREEN_WIDTH / 2, SCREEN_HEIGHT * 5 / 8);
 		}
 
 		sdl.render_present(renderer);
