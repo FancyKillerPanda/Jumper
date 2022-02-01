@@ -66,8 +66,8 @@ main :: proc() {
 
 				if currentState == .StartScreen {
 					// TODO(fkp): A way to properly change this in game.
-					// currentState = .PlayingNormal;
-					currentState = .PlayingContinuousScrolling;
+					currentState = .PlayingNormal;
+					// currentState = .PlayingContinuousScrolling;
 				}
 
 			case sdl.Event_Type.Key_Up:

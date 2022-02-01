@@ -55,6 +55,17 @@ random_platform_on_screen :: proc() -> (platform: Platform) {
 	return;
 }
 
+delete_off_screen_platforms_and_regenerate :: proc() {
+	for i := 0; i < len(platforms); {
+		if platforms[i].position.y - (platforms[i].dimensions.y / 2) >= SCREEN_HEIGHT {
+			ordered_remove(&platforms, i);
+			append(&platforms, random_platform());
+		} else {
+			i += 1;
+		}
+	}
+}
+
 platforms_collide :: proc(first: ^Platform, second: ^Platform) -> bool {
 	return first.position.x + (first.dimensions.x / 2) >= second.position.x - (second.dimensions.x / 2) &&
 		   first.position.x - (first.dimensions.x / 2) <= second.position.x + (second.dimensions.x / 2) &&

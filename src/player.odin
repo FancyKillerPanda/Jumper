@@ -66,17 +66,11 @@ update_player :: proc(using player: ^Player, deltaTime: f64) {
 		if position.y <= SCREEN_HEIGHT / 4 {
 			position.y += abs(velocity.y) * deltaTime;
 
-			for i := 0; i < len(platforms); {
-				platform := &platforms[i];
+			for platform in &platforms {
 				platform.position.y += abs(velocity.y) * deltaTime;
-
-				if platform.position.y - (platform.dimensions.y / 2) >= SCREEN_HEIGHT {
-					ordered_remove(&platforms, i);
-					append(&platforms, random_platform());
-				} else {
-					i += 1;
-				}
 			}
+
+			delete_off_screen_platforms_and_regenerate();
 		}
 	} else if currentState == .PlayingContinuousScrolling {
 		// We only start scrolling when we first reach the top quarter of the screen
@@ -84,27 +78,23 @@ update_player :: proc(using player: ^Player, deltaTime: f64) {
 			scrollSpeed += SCROLL_SPEED_INCREASE_RATE * deltaTime;
 		}
 
-		// TODO(fkp): Pretty much copy and paste from above
 		position.y += scrollSpeed * deltaTime;
-		for i := 0; i < len(platforms); {
-			platform := &platforms[i];
+		for platform in &platforms {
 			platform.position.y += scrollSpeed * deltaTime;
-
-			if platform.position.y - (platform.dimensions.y / 2) >= SCREEN_HEIGHT {
-				ordered_remove(&platforms, i);
-				append(&platforms, random_platform());
-			} else {
-				i += 1;
-			}
 		}
+
+		delete_off_screen_platforms_and_regenerate();
 	}
 
-	// Increases the jump power if we're holding space
-	// TODO(fkp): This would increase the power while still in the air.
-	if keysPressed[sdl.Scancode.Space] {
-		jumpPower += (PLAYER_MAX_JUMP_POWER - PLAYER_MIN_JUMP_POWER) / 120.0;
-		if jumpPower > PLAYER_MAX_JUMP_POWER {
-			jumpPower = PLAYER_MAX_JUMP_POWER;
+	// Increases the jump power if we're holding space and on a platform
+	if is_player_standing_on_platform(player) {
+		if keysPressed[sdl.Scancode.Space] {
+			jumpPower += (PLAYER_MAX_JUMP_POWER - PLAYER_MIN_JUMP_POWER) / 120.0;
+			if jumpPower > PLAYER_MAX_JUMP_POWER {
+				jumpPower = PLAYER_MAX_JUMP_POWER;
+			}
+		} else {
+			jumpPower = PLAYER_MIN_JUMP_POWER;
 		}
 	} else {
 		jumpPower = PLAYER_MIN_JUMP_POWER;
@@ -129,21 +119,22 @@ draw_player :: proc(renderer: ^sdl.Renderer, player: ^Player) {
 }
 
 player_jump :: proc(using player: ^Player) {
+	if is_player_standing_on_platform(player) {
+		velocity.y = -jumpPower;
+	}
+}
+
+is_player_standing_on_platform :: proc(using player: ^Player) -> bool {
 	position.y += 1;
-	isStandingOnPlatform := false;
+	defer position.y -= 1;
 
 	for platform in &platforms {
 		if player_colliding_with_platform(player, &platform) {
-			isStandingOnPlatform = true;
-			break;
+			return true;
 		}
 	}
 
-	position.y -= 1;
-
-	if isStandingOnPlatform {
-		velocity.y = -jumpPower;
-	}
+	return false;
 }
 
 player_colliding_with_platform :: proc(using player: ^Player, platform: ^Platform) -> bool {
