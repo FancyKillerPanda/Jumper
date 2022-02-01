@@ -24,7 +24,7 @@ main :: proc() {
 	append(&platforms, Platform { position = { SCREEN_WIDTH / 2, SCREEN_HEIGHT - (SCREEN_HEIGHT / 32) }, dimensions = { SCREEN_WIDTH, SCREEN_HEIGHT / 16 } });
 	append(&platforms, Platform { position = { SCREEN_WIDTH / 4, SCREEN_HEIGHT / 2 }, dimensions = { SCREEN_WIDTH / 6, SCREEN_HEIGHT / 16 } });
 	
-	last_time := time.now();
+	lastTime := time.now();
 	running := true;
 	
 	for running {
@@ -37,22 +37,22 @@ main :: proc() {
 			case sdl.Event_Type.Key_Down:
 				keysPressed[event.key.keysym.scancode] = true;
 
+			case sdl.Event_Type.Key_Up:
+				keysPressed[event.key.keysym.scancode] = false;
+
 				#partial switch event.key.keysym.scancode {
 					case sdl.Scancode.Space:
 						player_jump(&player);
 				}
-
-			case sdl.Event_Type.Key_Up:
-				keysPressed[event.key.keysym.scancode] = false;
 			}
 		}
 
 		// Timing
 		now := time.now();
-		delta_time := cast(f32) time.diff(last_time, now) / cast(f32) time.Second;
-		last_time = now;
+		deltaTime := cast(f64) time.diff(lastTime, now) / cast(f64) time.Second;
+		lastTime = now;
 
-		update_player(&player);
+		update_player(&player, deltaTime);
 		
 		sdl.set_render_draw_color(renderer, 200, 200, 200, 255);
 		sdl.render_clear(renderer);
