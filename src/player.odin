@@ -63,6 +63,23 @@ update_player :: proc(using player: ^Player, deltaTime: f64) {
 		}
 	}
 
+	// Moves everything on screen downward if we go into the top quarter
+	if position.y <= SCREEN_HEIGHT / 4 {
+		position.y += abs(velocity.y) * deltaTime;
+
+		for i := 0; i < len(platforms); {
+			platform := &platforms[i];
+			platform.position.y += abs(velocity.y) * deltaTime;
+
+			if platform.position.y - (platform.dimensions.y / 2) >= SCREEN_HEIGHT {
+				ordered_remove(&platforms, i);
+				append(&platforms, random_platform());
+			} else {
+				i += 1;
+			}
+		}
+	}
+
 	// Increases the jump power if we're holding space
 	if keysPressed[sdl.Scancode.Space] {
 		jumpPower += (PLAYER_MAX_JUMP_POWER - PLAYER_MIN_JUMP_POWER) / 120.0;

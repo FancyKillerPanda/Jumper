@@ -20,9 +20,13 @@ main :: proc() {
 	window, renderer, success := create_window();
 	if !success do return;
 
-	player: Player = { position = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 } };
+	// Entities
 	append(&platforms, Platform { position = { SCREEN_WIDTH / 2, SCREEN_HEIGHT - (SCREEN_HEIGHT / 32) }, dimensions = { SCREEN_WIDTH, SCREEN_HEIGHT / 16 } });
-	append(&platforms, Platform { position = { SCREEN_WIDTH / 4, SCREEN_HEIGHT / 2 }, dimensions = { SCREEN_WIDTH / 6, SCREEN_HEIGHT / 16 } });
+	for i in 0..<3 {
+		append(&platforms, random_platform_on_screen());
+	}
+
+	player: Player = { position = { SCREEN_WIDTH / 2, platforms[0].position.y - (PLAYER_HEIGHT / 2)} };
 	
 	lastTime := time.now();
 	running := true;
