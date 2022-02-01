@@ -18,7 +18,7 @@ main :: proc() {
 	window, renderer, success := create_window();
 	if !success do return;
 
-	player: Player;
+	player: Player = { position = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 } };
 	
 	last_time := time.now();
 	running := true;
