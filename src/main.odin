@@ -20,13 +20,8 @@ main :: proc() {
 	window, renderer, success := create_window();
 	if !success do return;
 
-	// Entities
-	append(&platforms, Platform { position = { SCREEN_WIDTH / 2, SCREEN_HEIGHT - (SCREEN_HEIGHT / 32) }, dimensions = { SCREEN_WIDTH, SCREEN_HEIGHT / 16 } });
-	for i in 0..<3 {
-		append(&platforms, random_platform_on_screen());
-	}
-
-	player: Player = { position = { SCREEN_WIDTH / 2, platforms[0].position.y - (PLAYER_HEIGHT / 2)} };
+	player: Player;
+	reset_game(&player);
 	
 	lastTime := time.now();
 	running := true;
@@ -66,6 +61,17 @@ main :: proc() {
 
 		sdl.render_present(renderer);
 	}
+}
+
+reset_game :: proc(player: ^Player) {
+	clear(&platforms);
+	
+	append(&platforms, Platform { position = { SCREEN_WIDTH / 2, SCREEN_HEIGHT - (SCREEN_HEIGHT / 32) }, dimensions = { SCREEN_WIDTH, SCREEN_HEIGHT / 16 } });
+	for i in 0..<3 {
+		append(&platforms, random_platform_on_screen());
+	}
+
+	player.position = { SCREEN_WIDTH / 2, platforms[0].position.y - (PLAYER_HEIGHT / 2)};
 }
 
 init_dependencies :: proc() -> bool {

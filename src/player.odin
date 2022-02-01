@@ -50,7 +50,8 @@ update_player :: proc(using player: ^Player, deltaTime: f64) {
 
 	// Player can't go below the screen
 	if position.y > SCREEN_HEIGHT - (PLAYER_HEIGHT / 2) {
-		position.y = SCREEN_HEIGHT - (PLAYER_HEIGHT / 2);
+		reset_game(player);
+		return;
 	}
 
 	// If we're moving downward, check for platform collisions
