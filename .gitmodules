@@ -1,0 +1,3 @@
+[submodule "shared/odin-sdl2"]
+	path = shared/odin-sdl2
+	url = https://github.com/JoshuaManton/odin-sdl2
