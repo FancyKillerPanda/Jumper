@@ -20,10 +20,12 @@ keysPressed: [sdl.Scancode.Num_Scancodes] bool;
 
 GameState :: enum {
 	StartScreen,
-	Playing,
+	PlayingNormal,
+	PlayingContinuousScrolling,
 }
 
 currentState: GameState;
+scrollSpeed: f64;
 
 main :: proc() {
 	if !init_dependencies() do return;
@@ -63,7 +65,9 @@ main :: proc() {
 				keysPressed[event.key.keysym.scancode] = true;
 
 				if currentState == .StartScreen {
-					currentState = .Playing;
+					// TODO(fkp): A way to properly change this in game.
+					// currentState = .PlayingNormal;
+					currentState = .PlayingContinuousScrolling;
 				}
 
 			case sdl.Event_Type.Key_Up:
@@ -71,7 +75,7 @@ main :: proc() {
 
 				#partial switch event.key.keysym.scancode {
 					case sdl.Scancode.Space:
-						if currentState == .Playing {
+						if currentState == .PlayingNormal || currentState == .PlayingContinuousScrolling {
 							player_jump(&player);
 						}
 				}
@@ -83,7 +87,7 @@ main :: proc() {
 		deltaTime := cast(f64) time.diff(lastTime, now) / cast(f64) time.Second;
 		lastTime = now;
 
-		if currentState == .Playing {
+		if currentState == .PlayingNormal || currentState == .PlayingContinuousScrolling {
 			update_player(&player, deltaTime);
 		}
 
@@ -137,6 +141,7 @@ reset_game :: proc(player: ^Player) {
 	player.position = { SCREEN_WIDTH / 2, platforms[0].position.y - (platforms[0].dimensions.y / 2) - (PLAYER_HEIGHT / 2)};
 
 	currentState = .StartScreen;
+	scrollSpeed = 0;
 }
 
 init_dependencies :: proc() -> bool {

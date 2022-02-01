@@ -8,17 +8,14 @@ Vector2 :: distinct [2] f64;
 PLAYER_WIDTH :: 45;
 PLAYER_HEIGHT :: 60;
 
-// PLAYER_ACCELERATION :: 0.3;
-// PLAYER_FRICTION :: -0.1;
-// PLAYER_GRAVITY :: 0.3;
 PLAYER_ACCELERATION :: 18000.0;
 PLAYER_FRICTION :: -6000.0;
 PLAYER_GRAVITY :: 15000.0;
 
-// PLAYER_MIN_JUMP_POWER :: 8.0;
-// PLAYER_MAX_JUMP_POWER :: 20.0;
 PLAYER_MIN_JUMP_POWER :: 1500.0;
 PLAYER_MAX_JUMP_POWER :: 4200.0;
+
+SCROLL_SPEED_INCREASE_RATE :: 25;
 
 Player :: struct {
 	position: Vector2,
@@ -65,12 +62,33 @@ update_player :: proc(using player: ^Player, deltaTime: f64) {
 	}
 
 	// Moves everything on screen downward if we go into the top quarter
-	if position.y <= SCREEN_HEIGHT / 4 {
-		position.y += abs(velocity.y) * deltaTime;
+	if currentState == .PlayingNormal {
+		if position.y <= SCREEN_HEIGHT / 4 {
+			position.y += abs(velocity.y) * deltaTime;
 
+			for i := 0; i < len(platforms); {
+				platform := &platforms[i];
+				platform.position.y += abs(velocity.y) * deltaTime;
+
+				if platform.position.y - (platform.dimensions.y / 2) >= SCREEN_HEIGHT {
+					ordered_remove(&platforms, i);
+					append(&platforms, random_platform());
+				} else {
+					i += 1;
+				}
+			}
+		}
+	} else if currentState == .PlayingContinuousScrolling {
+		// We only start scrolling when we first reach the top quarter of the screen
+		if scrollSpeed > 0 || position.y <= SCREEN_HEIGHT / 4 {
+			scrollSpeed += SCROLL_SPEED_INCREASE_RATE * deltaTime;
+		}
+
+		// TODO(fkp): Pretty much copy and paste from above
+		position.y += scrollSpeed * deltaTime;
 		for i := 0; i < len(platforms); {
 			platform := &platforms[i];
-			platform.position.y += abs(velocity.y) * deltaTime;
+			platform.position.y += scrollSpeed * deltaTime;
 
 			if platform.position.y - (platform.dimensions.y / 2) >= SCREEN_HEIGHT {
 				ordered_remove(&platforms, i);
@@ -82,6 +100,7 @@ update_player :: proc(using player: ^Player, deltaTime: f64) {
 	}
 
 	// Increases the jump power if we're holding space
+	// TODO(fkp): This would increase the power while still in the air.
 	if keysPressed[sdl.Scancode.Space] {
 		jumpPower += (PLAYER_MAX_JUMP_POWER - PLAYER_MIN_JUMP_POWER) / 120.0;
 		if jumpPower > PLAYER_MAX_JUMP_POWER {
