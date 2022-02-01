@@ -13,6 +13,13 @@ SCREEN_HEIGHT :: 960;
 
 keysPressed: [sdl.Scancode.Num_Scancodes] bool;
 
+GameState :: enum {
+	StartScreen,
+	Playing,
+}
+
+currentState: GameState;
+
 main :: proc() {
 	if !init_dependencies() do return;
 	defer quit_dependencies();
@@ -36,12 +43,18 @@ main :: proc() {
 			case sdl.Event_Type.Key_Down:
 				keysPressed[event.key.keysym.scancode] = true;
 
+				if currentState == .StartScreen {
+					currentState = .Playing;
+				}
+
 			case sdl.Event_Type.Key_Up:
 				keysPressed[event.key.keysym.scancode] = false;
 
 				#partial switch event.key.keysym.scancode {
 					case sdl.Scancode.Space:
-						player_jump(&player);
+						if currentState == .Playing {
+							player_jump(&player);
+						}
 				}
 			}
 		}
@@ -51,13 +64,23 @@ main :: proc() {
 		deltaTime := cast(f64) time.diff(lastTime, now) / cast(f64) time.Second;
 		lastTime = now;
 
-		update_player(&player, deltaTime);
-		
+		if currentState == .Playing {
+			update_player(&player, deltaTime);
+		}
+
 		sdl.set_render_draw_color(renderer, 200, 200, 200, 255);
 		sdl.render_clear(renderer);
 
 		draw_platforms(renderer);
 		draw_player(renderer, &player);
+
+		// Draws a dark overlay
+		if currentState == .StartScreen {
+			rect: sdl.Rect = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT }
+
+			sdl.set_render_draw_color(renderer, 50, 50, 50, 200);
+			sdl.render_fill_rect(renderer, &rect);
+		}
 
 		sdl.render_present(renderer);
 	}
@@ -71,7 +94,9 @@ reset_game :: proc(player: ^Player) {
 		append(&platforms, random_platform_on_screen());
 	}
 
-	player.position = { SCREEN_WIDTH / 2, platforms[0].position.y - (PLAYER_HEIGHT / 2)};
+	player.position = { SCREEN_WIDTH / 2, platforms[0].position.y - (platforms[0].dimensions.y / 2) - (PLAYER_HEIGHT / 2)};
+
+	currentState = .StartScreen;
 }
 
 init_dependencies :: proc() -> bool {
@@ -105,6 +130,8 @@ create_window :: proc() -> (window: ^sdl.Window, renderer: ^sdl.Renderer, succes
 		printf("Failed to create renderer. Message: '{}'\n", sdl.get_error());
 		return nil, nil, false;
 	}
+
+	sdl.set_render_draw_blend_mode(renderer, sdl.Blend_Mode.Blend);
 
 	return window, renderer, true;
 }
