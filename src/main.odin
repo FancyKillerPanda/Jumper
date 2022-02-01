@@ -37,6 +37,11 @@ main :: proc() {
 			case sdl.Event_Type.Key_Down:
 				keysPressed[event.key.keysym.scancode] = true;
 
+				#partial switch event.key.keysym.scancode {
+					case sdl.Scancode.Space:
+						player_jump(&player);
+				}
+
 			case sdl.Event_Type.Key_Up:
 				keysPressed[event.key.keysym.scancode] = false;
 			}

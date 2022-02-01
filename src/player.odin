@@ -18,26 +18,6 @@ Player :: struct {
 	acceleration: Vector2,
 }
 
-handle_event :: proc(player: ^Player, event: ^sdl.Event) {
-	#partial switch event.type {
-		case sdl.Event_Type.Key_Down:
-			#partial switch event.key.keysym.scancode {
-				case sdl.Scancode.Right:
-					player.acceleration.x = PLAYER_ACCELERATION;
-
-				case sdl.Scancode.Left:
-					player.acceleration.x = -PLAYER_ACCELERATION;
-			}
-
-		case sdl.Event_Type.Key_Up:
-			#partial switch event.key.keysym.scancode {
-				case sdl.Scancode.Right: fallthrough;
-				case sdl.Scancode.Left:
-					player.acceleration.x = 0;
-			}
-	}
-}
-
 update_player :: proc(using player: ^Player) {
 	acceleration = { 0, PLAYER_GRAVITY };
 	
@@ -51,20 +31,25 @@ update_player :: proc(using player: ^Player) {
 	velocity += acceleration;
 	position += velocity + (acceleration * 0.5);
 
+	// Wraps the x-axis around
 	if position.x < 0 {
 		position.x = SCREEN_WIDTH;
 	} else if position.x > SCREEN_WIDTH {
 		position.x = 0;
 	}
 
+	// Player can't go below the screen
 	if position.y > SCREEN_HEIGHT - (PLAYER_HEIGHT / 2) {
 		position.y = SCREEN_HEIGHT - (PLAYER_HEIGHT / 2);
 	}
 
-	for platform in &platforms {
-		if player_colliding_with_platform(player, &platform) {
-			position.y = platform.position.y - (platform.dimensions.y / 2) - (PLAYER_HEIGHT / 2);
-			velocity.y = 0;
+	// If we're moving downward, check for platform collisions
+	if velocity.y >= 0 {
+		for platform in &platforms {
+			if player_colliding_with_platform(player, &platform) {
+				position.y = platform.position.y - (platform.dimensions.y / 2) - (PLAYER_HEIGHT / 2);
+				velocity.y = 0;
+			}
 		}
 	}
 }
@@ -74,6 +59,24 @@ draw_player :: proc(renderer: ^sdl.Renderer, player: ^Player) {
 	
 	sdl.set_render_draw_color(renderer, 255, 255, 0, 255);
 	sdl.render_fill_rect(renderer, &rect);
+}
+
+player_jump :: proc(using player: ^Player) {
+	position.y += 1;
+	isStandingOnPlatform := false;
+
+	for platform in &platforms {
+		if player_colliding_with_platform(player, &platform) {
+			isStandingOnPlatform = true;
+			break;
+		}
+	}
+
+	position.y -= 1;
+
+	if isStandingOnPlatform {
+		velocity.y = -18;
+	}
 }
 
 player_colliding_with_platform :: proc(using player: ^Player, platform: ^Platform) -> bool {
