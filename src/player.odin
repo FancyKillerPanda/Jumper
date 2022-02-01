@@ -38,27 +38,34 @@ handle_event :: proc(player: ^Player, event: ^sdl.Event) {
 	}
 }
 
-update_player :: proc(player: ^Player) {
-	player.acceleration = { 0, PLAYER_GRAVITY };
+update_player :: proc(using player: ^Player) {
+	acceleration = { 0, PLAYER_GRAVITY };
 	
 	if keysPressed[sdl.Scancode.Right] {
-		player.acceleration.x = PLAYER_ACCELERATION;
+		acceleration.x = PLAYER_ACCELERATION;
 	} else if keysPressed[sdl.Scancode.Left] {
-		player.acceleration.x = -PLAYER_ACCELERATION;
+		acceleration.x = -PLAYER_ACCELERATION;
 	}
 	
-	player.acceleration.x += player.velocity.x * PLAYER_FRICTION;
-	player.velocity += player.acceleration;
-	player.position += player.velocity + (player.acceleration * 0.5);
+	acceleration.x += velocity.x * PLAYER_FRICTION;
+	velocity += acceleration;
+	position += velocity + (acceleration * 0.5);
 
-	if player.position.x < 0 {
-		player.position.x = SCREEN_WIDTH;
-	} else if player.position.x > SCREEN_WIDTH {
-		player.position.x = 0;
+	if position.x < 0 {
+		position.x = SCREEN_WIDTH;
+	} else if position.x > SCREEN_WIDTH {
+		position.x = 0;
 	}
 
-	if player.position.y > SCREEN_HEIGHT - (PLAYER_HEIGHT / 2) {
-		player.position.y = SCREEN_HEIGHT - (PLAYER_HEIGHT / 2);
+	if position.y > SCREEN_HEIGHT - (PLAYER_HEIGHT / 2) {
+		position.y = SCREEN_HEIGHT - (PLAYER_HEIGHT / 2);
+	}
+
+	for platform in &platforms {
+		if player_colliding_with_platform(player, &platform) {
+			position.y = platform.position.y - (platform.dimensions.y / 2) - (PLAYER_HEIGHT / 2);
+			velocity.y = 0;
+		}
 	}
 }
 
@@ -67,4 +74,11 @@ draw_player :: proc(renderer: ^sdl.Renderer, player: ^Player) {
 	
 	sdl.set_render_draw_color(renderer, 255, 255, 0, 255);
 	sdl.render_fill_rect(renderer, &rect);
+}
+
+player_colliding_with_platform :: proc(using player: ^Player, platform: ^Platform) -> bool {
+	return position.x + (PLAYER_WIDTH / 2) >= platform.position.x - (platform.dimensions.x / 2) &&
+		   position.x - (PLAYER_WIDTH / 2) <= platform.position.x + (platform.dimensions.x / 2) &&
+		   position.y + (PLAYER_HEIGHT / 2) >= platform.position.y - (platform.dimensions.y / 2) &&
+		   position.y - (PLAYER_HEIGHT / 2) <= platform.position.y + (platform.dimensions.y / 2);
 }

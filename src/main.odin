@@ -21,6 +21,7 @@ main :: proc() {
 	if !success do return;
 
 	player: Player = { position = { SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 } };
+	append(&platforms, Platform { position = { SCREEN_WIDTH / 2, SCREEN_HEIGHT - (SCREEN_HEIGHT / 32) }, dimensions = { SCREEN_WIDTH, SCREEN_HEIGHT / 16 } });
 	append(&platforms, Platform { position = { SCREEN_WIDTH / 4, SCREEN_HEIGHT / 2 }, dimensions = { SCREEN_WIDTH / 6, SCREEN_HEIGHT / 16 } });
 	
 	last_time := time.now();
@@ -51,8 +52,8 @@ main :: proc() {
 		sdl.set_render_draw_color(renderer, 200, 200, 200, 255);
 		sdl.render_clear(renderer);
 
-		draw_player(renderer, &player);
 		draw_platforms(renderer);
+		draw_player(renderer, &player);
 
 		sdl.render_present(renderer);
 	}
