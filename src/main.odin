@@ -17,8 +17,9 @@ main :: proc() {
 
 	window, renderer, success := create_window();
 	if !success do return;
-	sdl.set_render_draw_color(renderer, 200, 200, 200, 255);
 
+	player: Player;
+	
 	last_time := time.now();
 	running := true;
 	
@@ -29,14 +30,22 @@ main :: proc() {
 			case sdl.Event_Type.Quit:
 				running = false;
 			}
+
+			handle_event(&player, &event);
 		}
 
 		// Timing
 		now := time.now();
 		delta_time := cast(f32) time.diff(last_time, now) / cast(f32) time.Second;
 		last_time = now;
+
+		update_player(&player);
 		
+		sdl.set_render_draw_color(renderer, 200, 200, 200, 255);
 		sdl.render_clear(renderer);
+
+		draw_player(renderer, &player);
+
 		sdl.render_present(renderer);
 	}
 }
