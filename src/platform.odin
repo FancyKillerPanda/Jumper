@@ -33,11 +33,31 @@ random_platform :: proc() -> (platform: Platform) {
 	platform.position.x = rand.float64_range(platform.dimensions.x / 2, SCREEN_WIDTH - (platform.dimensions.x / 2));
 	platform.position.y = rand.float64_range((-SCREEN_HEIGHT / 4) - (platform.dimensions.y / 2), -platform.dimensions.y / 2);
 	
+	for otherPlatform in &platforms {
+		if platforms_collide(&platform, &otherPlatform) {
+			platform = random_platform();
+		}
+	}
+	
 	return;
 }
 
 random_platform_on_screen :: proc() -> (platform: Platform) {
 	platform = random_platform();
 	platform.position.y = rand.float64_range(platform.dimensions.y / 2, (SCREEN_HEIGHT * 3 / 4) - (platform.dimensions.y / 2));
+
+	for otherPlatform in &platforms {
+		if platforms_collide(&platform, &otherPlatform) {
+			platform = random_platform_on_screen();
+		}
+	}
+
 	return;
+}
+
+platforms_collide :: proc(first: ^Platform, second: ^Platform) -> bool {
+	return first.position.x + (first.dimensions.x / 2) >= second.position.x - (second.dimensions.x / 2) &&
+		   first.position.x - (first.dimensions.x / 2) <= second.position.x + (second.dimensions.x / 2) &&
+		   first.position.y + (first.dimensions.y / 2) >= second.position.y - (second.dimensions.y / 2) &&
+		   first.position.y - (first.dimensions.y / 2) <= second.position.y + (second.dimensions.y / 2);
 }
