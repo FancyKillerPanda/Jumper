@@ -72,6 +72,20 @@ main :: proc() {
 							player_jump(&player);
 						}
 				}
+
+			case sdl.Event_Type.Mouse_Motion:
+				button_group_handle_mouse_motion(&modeButtons, &event);
+				
+			case sdl.Event_Type.Mouse_Button_Down:
+				button_group_handle_mouse_down(&modeButtons, &event);
+				
+			case sdl.Event_Type.Mouse_Button_Up:
+				result := button_group_handle_mouse_up(&modeButtons, &event);
+				if result == 0 {
+					currentState = .PlayingNormal;
+				} else if result == 1 {
+					currentState = .PlayingContinuousScrolling;
+				}
 			}
 		}
 
