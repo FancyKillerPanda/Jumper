@@ -29,7 +29,7 @@ draw_platform :: proc(renderer: ^sdl.Renderer, platform: ^Platform) {
 
 random_platform :: proc() -> (platform: Platform) {
 	platform.dimensions.x = rand.float64_range(SCREEN_WIDTH / 8, SCREEN_WIDTH / 4);
-	platform.dimensions.y = rand.float64_range(SCREEN_HEIGHT / 20, SCREEN_HEIGHT / 12);
+	platform.dimensions.y = rand.float64_range(SCREEN_HEIGHT / 32, SCREEN_HEIGHT / 24);
 	platform.position.x = rand.float64_range(platform.dimensions.x / 2, SCREEN_WIDTH - (platform.dimensions.x / 2));
 	platform.position.y = rand.float64_range((-SCREEN_HEIGHT / 4) - (platform.dimensions.y / 2), -platform.dimensions.y / 2);
 	

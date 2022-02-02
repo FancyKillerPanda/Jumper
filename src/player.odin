@@ -5,8 +5,8 @@ import img "vendor:sdl2/image"
 
 Vector2 :: distinct [2] f64;
 
-PLAYER_WIDTH :: 45;
-PLAYER_HEIGHT :: 60;
+PLAYER_WIDTH :: 60;
+PLAYER_HEIGHT :: 80;
 
 PLAYER_ACCELERATION :: 18000.0;
 PLAYER_FRICTION :: -6000.0;

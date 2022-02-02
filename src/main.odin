@@ -183,7 +183,7 @@ reset_game :: proc(player: ^Player) {
 		dimensions = { SCREEN_WIDTH + (PLAYER_WIDTH * 2), SCREEN_HEIGHT / 16 },
 	});
 
-	for i in 0..<3 {
+	for i in 0..3 {
 		append(&platforms, random_platform_on_screen());
 	}
 
