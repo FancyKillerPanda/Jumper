@@ -25,6 +25,11 @@ create_text :: proc(renderer: ^sdl.Renderer, font_: ^ttf.Font, message_: cstring
 	return text;
 }
 
+free_text :: proc(text: ^Text) {
+	sdl.DestroyTexture(text.texture);
+	text.texture = nil;
+}
+
 draw_text :: proc(renderer: ^sdl.Renderer, text: ^Text, x: i32, y: i32) {
 	text.rect.x = x - (text.rect.w / 2);
 	text.rect.y = y - (text.rect.h / 2);

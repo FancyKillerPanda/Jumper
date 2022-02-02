@@ -60,6 +60,8 @@ delete_off_screen_platforms_and_regenerate :: proc() {
 		if platforms[i].position.y - (platforms[i].dimensions.y / 2) >= SCREEN_HEIGHT {
 			ordered_remove(&platforms, i);
 			append(&platforms, random_platform());
+
+			add_to_score(100);
 		} else {
 			i += 1;
 		}

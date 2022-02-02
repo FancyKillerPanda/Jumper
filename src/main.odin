@@ -1,6 +1,7 @@
 package main;
 
 import "core:fmt"
+import "core:strings"
 import "core:time"
 
 import sdl "vendor:sdl2"
@@ -24,6 +25,8 @@ GameState :: enum {
 currentState: GameState;
 gameMode: GameState;
 scrollSpeed: f64;
+currentScore: u32;
+highScore: u32;
 
 main :: proc() {
 	if !init_dependencies() do return;
@@ -109,7 +112,11 @@ main :: proc() {
 		sdl.SetRenderDrawColor(renderer, 200, 200, 200, 255);
 		sdl.RenderClear(renderer);
 
+		currentScoreText := create_text(renderer, helpFont, strings.clone_to_cstring(fmt.tprintf("Score: {} (Highscore: {})", currentScore, highScore), context.temp_allocator));
+		defer free_text(&currentScoreText);
+		
 		draw_platforms(renderer);
+		draw_text(renderer, &currentScoreText, SCREEN_WIDTH / 2, currentScoreText.rect.h);
 		draw_player(renderer, &player);
 
 		// Draws a dark overlay
@@ -150,6 +157,14 @@ reset_game :: proc(player: ^Player) {
 	currentState = .StartScreen;
 	gameMode = .PlayingNormal; // This will be changed when it is selected by the user
 	scrollSpeed = 0;
+	currentScore = 0;
+}
+
+add_to_score :: proc(amount: u32) {
+	currentScore += amount;
+	if currentScore > highScore {
+		highScore = currentScore;
+	}
 }
 
 init_dependencies :: proc() -> bool {
