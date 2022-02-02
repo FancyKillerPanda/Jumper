@@ -9,20 +9,22 @@ platforms: [dynamic] Platform;
 
 Platform :: struct {
 	texture: ^sdl.Texture,
+	flip: sdl.RendererFlip,
+	angle: f64,
 	
 	position: Vector2,
 	dimensions: Vector2,
 }
 
 create_platform :: proc(renderer: ^sdl.Renderer, position: Vector2, dimensions: Vector2) -> (platform: Platform) {
-	// It is currently a bit wasteful to store the same texture in each
-	// instance, but this allows us to have different textures in the future.
 	platform.texture = img.LoadTexture(renderer, "res/platform.png");
 	if platform.texture == nil {
 		printf("Error: Failed to load platform texture.\n");
 		return;
 	}
 	
+	platform.flip = sdl.RendererFlip(rand.uint32() % 3);
+	platform.angle = cast(f64) (rand.uint32() % 2) * 180.0;
 	platform.position = position;
 	platform.dimensions = dimensions;
 
@@ -40,7 +42,7 @@ draw_platform :: proc(renderer: ^sdl.Renderer, platform: ^Platform) {
 					   cast(i32) (platform.position.y - (platform.dimensions.y / 2)),
 					   cast(i32) platform.dimensions.x, cast(i32) platform.dimensions.y };
 	
-	sdl.RenderCopy(renderer, platform.texture, nil, &rect);
+	sdl.RenderCopyEx(renderer, platform.texture, nil, &rect, platform.angle, nil, platform.flip);
 }
 
 random_platform :: proc(renderer: ^sdl.Renderer) -> (platform: Platform) {
