@@ -52,7 +52,7 @@ update_sprite_sheet :: proc(using spriteSheet: ^SpriteSheet, deltaTime: f64) {
 	}
 }
 
-draw_sprite_sheet :: proc(using spriteSheet: ^SpriteSheet, position: Vector2) {
+draw_sprite_sheet :: proc(using spriteSheet: ^SpriteSheet, position: Vector2, horizontalFlip := false) {
 	rect: sdl.Rect;
 	rect.x = cast(i32) (position.x - (subrectDimensions.x / 2));
 	rect.y = cast(i32) (position.y - (subrectDimensions.y / 2));
@@ -60,7 +60,11 @@ draw_sprite_sheet :: proc(using spriteSheet: ^SpriteSheet, position: Vector2) {
 	rect.h = cast(i32) subrectDimensions.y;
 	
 	subrect := get_sprite_sheet_subrect(spriteSheet, spriteSheet.animationOrder[spriteSheet.animationCurrentIndex]);
-	sdl.RenderCopy(renderer, texture, &subrect, &rect);
+	
+	flip := sdl.RendererFlip.NONE;
+	if horizontalFlip do flip = sdl.RendererFlip.HORIZONTAL;
+	
+	sdl.RenderCopyEx(renderer, texture, &subrect, &rect, 0, nil, flip);
 }
 
 // TODO(fkp): Allow multiple lines of images

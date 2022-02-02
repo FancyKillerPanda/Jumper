@@ -33,7 +33,7 @@ create_player :: proc(renderer: ^sdl.Renderer) -> Player {
 	player.dimensions = Vector2 { 60, 80 };
 	
 	player.idleSpriteSheet = new(SpriteSheet);
-	init_sprite_sheet(player.idleSpriteSheet, renderer, "res/player/spritesheet.png", player.dimensions, 4, { 0, 1, 2, 3, 2, 1 }, 150);
+	init_sprite_sheet(player.idleSpriteSheet, renderer, "res/player/spritesheet.png", player.dimensions, 4, { 0, 1, 2, 3, 2, 1 }, 175);
 
 	player.currentSpriteSheet = player.idleSpriteSheet;
 	
@@ -51,7 +51,12 @@ update_player :: proc(using player: ^Player, deltaTime: f64) {
 	}
 	
 	acceleration.x += velocity.x * PLAYER_FRICTION * deltaTime;
+	
 	velocity += acceleration * deltaTime;
+	if abs(velocity.x) <= 0.1 {
+		velocity.x = 0;
+	}
+	
 	position += (velocity * deltaTime) + (acceleration * 0.5 * deltaTime * deltaTime);
 
 	// Wraps the x-axis around
@@ -121,7 +126,8 @@ update_player :: proc(using player: ^Player, deltaTime: f64) {
 }
 
 draw_player :: proc(renderer: ^sdl.Renderer, using player: ^Player) {
-	draw_sprite_sheet(currentSpriteSheet, position);
+	flip := player.velocity.x < 0;
+	draw_sprite_sheet(currentSpriteSheet, position, flip);
 }
 
 player_jump :: proc(using player: ^Player) {
