@@ -8,8 +8,25 @@ import img "vendor:sdl2/image"
 platforms: [dynamic] Platform;
 
 Platform :: struct {
+	texture: ^sdl.Texture,
+	
 	position: Vector2,
 	dimensions: Vector2,
+}
+
+create_platform :: proc(renderer: ^sdl.Renderer, position: Vector2, dimensions: Vector2) -> (platform: Platform) {
+	// It is currently a bit wasteful to store the same texture in each
+	// instance, but this allows us to have different textures in the future.
+	platform.texture = img.LoadTexture(renderer, "res/platform.png");
+	if platform.texture == nil {
+		printf("Error: Failed to load platform texture.\n");
+		return;
+	}
+	
+	platform.position = position;
+	platform.dimensions = dimensions;
+
+	return;
 }
 
 draw_platforms :: proc(renderer: ^sdl.Renderer) {
@@ -23,43 +40,47 @@ draw_platform :: proc(renderer: ^sdl.Renderer, platform: ^Platform) {
 					   cast(i32) (platform.position.y - (platform.dimensions.y / 2)),
 					   cast(i32) platform.dimensions.x, cast(i32) platform.dimensions.y };
 	
-	sdl.SetRenderDrawColor(renderer, 0, 255, 0, 255);
-	sdl.RenderFillRect(renderer, &rect);
+	sdl.RenderCopy(renderer, platform.texture, nil, &rect);
 }
 
-random_platform :: proc() -> (platform: Platform) {
-	platform.dimensions.x = rand.float64_range(SCREEN_WIDTH / 8, SCREEN_WIDTH / 4);
-	platform.dimensions.y = rand.float64_range(SCREEN_HEIGHT / 32, SCREEN_HEIGHT / 24);
+random_platform :: proc(renderer: ^sdl.Renderer) -> (platform: Platform) {
+	platform = create_platform(
+		renderer,
+		{ 0, 0 }, // Will be filled later as it relies on the dimensions
+		{ rand.float64_range(SCREEN_WIDTH / 8, SCREEN_WIDTH / 4), rand.float64_range(SCREEN_HEIGHT / 32, SCREEN_HEIGHT / 24) },
+	);
+
 	platform.position.x = rand.float64_range(platform.dimensions.x / 2, SCREEN_WIDTH - (platform.dimensions.x / 2));
 	platform.position.y = rand.float64_range((-SCREEN_HEIGHT / 4) - (platform.dimensions.y / 2), -platform.dimensions.y / 2);
 	
 	for otherPlatform in &platforms {
 		if platforms_collide(&platform, &otherPlatform) {
-			platform = random_platform();
+			sdl.DestroyTexture(platform.texture);
+			platform = random_platform(renderer);
 		}
 	}
 	
 	return;
 }
 
-random_platform_on_screen :: proc() -> (platform: Platform) {
-	platform = random_platform();
+random_platform_on_screen :: proc(renderer: ^sdl.Renderer) -> (platform: Platform) {
+	platform = random_platform(renderer);
 	platform.position.y = rand.float64_range(platform.dimensions.y / 2, (SCREEN_HEIGHT * 3 / 4) - (platform.dimensions.y / 2));
 
 	for otherPlatform in &platforms {
 		if platforms_collide(&platform, &otherPlatform) {
-			platform = random_platform_on_screen();
+			platform = random_platform_on_screen(renderer);
 		}
 	}
 
 	return;
 }
 
-delete_off_screen_platforms_and_regenerate :: proc() {
+delete_off_screen_platforms_and_regenerate :: proc(renderer: ^sdl.Renderer) {
 	for i := 0; i < len(platforms); {
 		if platforms[i].position.y - (platforms[i].dimensions.y / 2) >= SCREEN_HEIGHT {
 			ordered_remove(&platforms, i);
-			append(&platforms, random_platform());
+			append(&platforms, random_platform(renderer));
 
 			add_to_score(100);
 		} else {

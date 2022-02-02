@@ -15,6 +15,8 @@ PLAYER_MAX_JUMP_POWER :: 2200.0;
 SCROLL_SPEED_INCREASE_RATE :: 25;
 
 Player :: struct {
+	renderer: ^sdl.Renderer,
+	
 	currentSpriteSheet: ^SpriteSheet,
 	idleSpriteSheet: ^SpriteSheet,
 	
@@ -29,6 +31,7 @@ Player :: struct {
 
 create_player :: proc(renderer: ^sdl.Renderer) -> Player {
 	player: Player;
+	player.renderer = renderer;
 
 	player.dimensions = Vector2 { 45, 75 };
 	
@@ -98,7 +101,7 @@ update_player :: proc(using player: ^Player, deltaTime: f64) {
 
 	// Player can't go below the screen
 	if position.y > SCREEN_HEIGHT - (dimensions.y / 2) {
-		reset_game(player);
+		reset_game(player.renderer, player);
 		return;
 	}
 
@@ -111,7 +114,7 @@ update_player :: proc(using player: ^Player, deltaTime: f64) {
 				platform.position.y += abs(velocity.y) * deltaTime;
 			}
 
-			delete_off_screen_platforms_and_regenerate();
+			delete_off_screen_platforms_and_regenerate(player.renderer);
 		}
 	} else if currentState == .PlayingContinuousScrolling {
 		// We only start scrolling when we first reach the top quarter of the screen
@@ -124,7 +127,7 @@ update_player :: proc(using player: ^Player, deltaTime: f64) {
 			platform.position.y += scrollSpeed * deltaTime;
 		}
 
-		delete_off_screen_platforms_and_regenerate();
+		delete_off_screen_platforms_and_regenerate(player.renderer);
 	}
 
 	// Increases the jump power if we're holding space and on a platform
@@ -145,7 +148,7 @@ update_player :: proc(using player: ^Player, deltaTime: f64) {
 	update_sprite_sheet(currentSpriteSheet, deltaTime);
 }
 
-draw_player :: proc(renderer: ^sdl.Renderer, using player: ^Player) {
+draw_player :: proc(using player: ^Player) {
 	flip := player.velocity.x < 0;
 	draw_sprite_sheet(currentSpriteSheet, position, flip);
 }

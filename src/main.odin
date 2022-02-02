@@ -74,7 +74,7 @@ main :: proc() {
 	}
 
 	player := create_player(renderer);
-	reset_game(&player);
+	reset_game(renderer, &player);
 	
 	lastTime := time.now();
 	running := true;
@@ -152,7 +152,7 @@ main :: proc() {
 		
 		draw_platforms(renderer);
 		draw_text(renderer, &currentScoreText, SCREEN_WIDTH / 2, currentScoreText.rect.h);
-		draw_player(renderer, &player);
+		draw_player(&player);
 
 		// Draws a dark overlay
 		if currentState == .StartScreen || currentState == .Paused {
@@ -180,15 +180,16 @@ main :: proc() {
 	}
 }
 
-reset_game :: proc(player: ^Player) {
+reset_game :: proc(renderer: ^sdl.Renderer, player: ^Player) {
 	clear(&platforms);
-	append(&platforms, Platform {
-		position = { SCREEN_WIDTH / 2, SCREEN_HEIGHT - (SCREEN_HEIGHT / 32) },
-		dimensions = { SCREEN_WIDTH + (player.dimensions.x * 2), SCREEN_HEIGHT / 16 },
-	});
+	append(&platforms, create_platform(
+		renderer,
+		{ SCREEN_WIDTH / 2, SCREEN_HEIGHT - (SCREEN_HEIGHT / 32) },
+		{ SCREEN_WIDTH + (player.dimensions.x * 2), SCREEN_HEIGHT / 16 },
+	));
 
 	for i in 0..3 {
-		append(&platforms, random_platform_on_screen());
+		append(&platforms, random_platform_on_screen(renderer));
 	}
 
 	player.position = { SCREEN_WIDTH / 2, platforms[0].position.y - (platforms[0].dimensions.y / 2) - (player.dimensions.y / 2)};
