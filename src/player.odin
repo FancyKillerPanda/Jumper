@@ -40,10 +40,10 @@ update_player :: proc(using player: ^Player, deltaTime: f64) {
 	position += (velocity * deltaTime) + (acceleration * 0.5 * deltaTime * deltaTime);
 
 	// Wraps the x-axis around
-	if position.x < 0 {
-		position.x = SCREEN_WIDTH;
-	} else if position.x > SCREEN_WIDTH {
-		position.x = 0;
+	if position.x + (PLAYER_WIDTH / 2.0) < 0.0 {
+		position.x = SCREEN_WIDTH + (PLAYER_WIDTH / 2.0);
+	} else if position.x > SCREEN_WIDTH + (PLAYER_WIDTH / 2.0) {
+		position.x = -PLAYER_WIDTH / 2.0;
 	}
 
 	// Player can't go below the screen
