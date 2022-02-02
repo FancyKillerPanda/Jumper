@@ -3,16 +3,16 @@ package main;
 import "core:fmt"
 import "core:time"
 
-import sdl "shared:odin-sdl2"
-import sdl_image "shared:odin-sdl2/image"
-import sdl_ttf "shared:odin-sdl2/ttf"
+import sdl "vendor:sdl2"
+import img "vendor:sdl2/image"
+import ttf "vendor:sdl2/ttf"
 
 printf :: fmt.printf;
 
 SCREEN_WIDTH :: 720;
 SCREEN_HEIGHT :: 960;
 
-keysPressed: [sdl.Scancode.Num_Scancodes] bool;
+keysPressed: [sdl.Scancode.NUM_SCANCODES] bool;
 
 GameState :: enum {
 	StartScreen,
@@ -32,10 +32,10 @@ main :: proc() {
 	window, renderer, success := create_window();
 	if !success do return;
 
-	titleFont := sdl_ttf.open_font("res/Cyber.ttf", 128);
-	helpFont := sdl_ttf.open_font("res/LTWaveUI.ttf", 32);
+	titleFont := ttf.OpenFont("res/Cyber.ttf", 128);
+	helpFont := ttf.OpenFont("res/LTWaveUI.ttf", 32);
 	if titleFont == nil || helpFont == nil {
-		printf("Error: Failed to open font. Message: '{}'\n", sdl.get_error());
+		printf("Error: Failed to open font. Message: '{}'\n", sdl.GetError());
 		return;
 	}
 
@@ -54,24 +54,24 @@ main :: proc() {
 	
 	for running {
 		event: sdl.Event;
-		for sdl.poll_event(&event) != 0 {
+		for sdl.PollEvent(&event) != 0 {
 			#partial switch (event.type) {
-			case sdl.Event_Type.Quit:
+			case sdl.EventType.QUIT:
 				running = false;
 
-			case sdl.Event_Type.Key_Down:
+			case sdl.EventType.KEYDOWN:
 				keysPressed[event.key.keysym.scancode] = true;
 
-			case sdl.Event_Type.Key_Up:
+			case sdl.EventType.KEYUP:
 				keysPressed[event.key.keysym.scancode] = false;
 
 				#partial switch event.key.keysym.scancode {
-					case sdl.Scancode.Space:
+					case sdl.Scancode.SPACE:
 						if currentState == .PlayingNormal || currentState == .PlayingContinuousScrolling {
 							player_jump(&player);
 						}
 
-					case sdl.Scancode.Escape:
+					case sdl.Scancode.ESCAPE:
 						if currentState == .Paused {
 							currentState = gameMode;
 						} else if currentState == gameMode {
@@ -79,13 +79,13 @@ main :: proc() {
 						}
 				}
 
-			case sdl.Event_Type.Mouse_Motion:
+			case sdl.EventType.MOUSEMOTION:
 				button_group_handle_mouse_motion(&modeButtons, &event);
 				
-			case sdl.Event_Type.Mouse_Button_Down:
+			case sdl.EventType.MOUSEBUTTONDOWN:
 				button_group_handle_mouse_down(&modeButtons, &event);
 				
-			case sdl.Event_Type.Mouse_Button_Up:
+			case sdl.EventType.MOUSEBUTTONUP:
 				result := button_group_handle_mouse_up(&modeButtons, &event);
 				if result == 0 {
 					currentState = .PlayingNormal;
@@ -109,8 +109,8 @@ main :: proc() {
 			update_player(&player, deltaTime);
 		}
 
-		sdl.set_render_draw_color(renderer, 200, 200, 200, 255);
-		sdl.render_clear(renderer);
+		sdl.SetRenderDrawColor(renderer, 200, 200, 200, 255);
+		sdl.RenderClear(renderer);
 
 		draw_platforms(renderer);
 		draw_player(renderer, &player);
@@ -119,8 +119,8 @@ main :: proc() {
 		if currentState == .StartScreen || currentState == .Paused {
 			fillRect: sdl.Rect = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT }
 			
-			sdl.set_render_draw_color(renderer, 50, 50, 50, 200);
-			sdl.render_fill_rect(renderer, &fillRect);
+			sdl.SetRenderDrawColor(renderer, 50, 50, 50, 200);
+			sdl.RenderFillRect(renderer, &fillRect);
 		}
 
 		// Text for the various splash screens
@@ -133,7 +133,7 @@ main :: proc() {
 			draw_text(renderer, &pausedHelpText, SCREEN_WIDTH / 2, SCREEN_HEIGHT * 5 / 9);
 		}
 
-		sdl.render_present(renderer);
+		sdl.RenderPresent(renderer);
 	}
 }
 
@@ -156,18 +156,18 @@ reset_game :: proc(player: ^Player) {
 }
 
 init_dependencies :: proc() -> bool {
-	if sdl.init(sdl.Init_Flags.Everything) < 0 {
-		printf("Error: Failed to initialise SDL2. Message: '{}'\n", sdl.get_error());
+	if sdl.Init(sdl.INIT_EVERYTHING) < 0 {
+		printf("Error: Failed to initialise SDL2. Message: '{}'\n", sdl.GetError());
 		return false;
 	}
 
-	if sdl_image.init(sdl_image.Init_Flags.PNG) != sdl_image.Init_Flags.PNG {
-		printf("Error: Failed to initialise SDL_image. Message: '{}'\n", sdl.get_error());
+	if img.Init(img.INIT_PNG) != img.INIT_PNG {
+		printf("Error: Failed to initialise SDL_image. Message: '{}'\n", sdl.GetError());
 		return false;
 	}
 
-	if sdl_ttf.init() < 0 {
-		printf("Error: Failed to initialise SDL_ttf. Message: '{}'\n", sdl.get_error());
+	if ttf.Init() < 0 {
+		printf("Error: Failed to initialise SDL_ttf. Message: '{}'\n", sdl.GetError());
 		return false;
 	}
 
@@ -175,24 +175,24 @@ init_dependencies :: proc() -> bool {
 }
 
 quit_dependencies :: proc() {
-	sdl_image.quit();
-	sdl.quit();
+	img.Quit();
+	sdl.Quit();
 }
 
 create_window :: proc() -> (window: ^sdl.Window, renderer: ^sdl.Renderer, success: bool) {
-	window = sdl.create_window("Jumper", 500, 50, SCREEN_WIDTH, SCREEN_HEIGHT, sdl.Window_Flags(0));
+	window = sdl.CreateWindow("Jumper", 500, 50, SCREEN_WIDTH, SCREEN_HEIGHT, nil);
 	if window == nil {
-		printf("Error: Failed to create window. Message: '{}'\n", sdl.get_error());
+		printf("Error: Failed to create window. Message: '{}'\n", sdl.GetError());
 		return nil, nil, false;
 	}
 	
-	renderer = sdl.create_renderer(window, -1, sdl.Renderer_Flags.Present_VSync | sdl.Renderer_Flags.Accelerated);
+	renderer = sdl.CreateRenderer(window, -1, sdl.RENDERER_PRESENTVSYNC | sdl.RENDERER_ACCELERATED);
 	if renderer == nil {
-		printf("Error: Failed to create renderer. Message: '{}'\n", sdl.get_error());
+		printf("Error: Failed to create renderer. Message: '{}'\n", sdl.GetError());
 		return nil, nil, false;
 	}
 
-	sdl.set_render_draw_blend_mode(renderer, sdl.Blend_Mode.Blend);
+	sdl.SetRenderDrawBlendMode(renderer, sdl.BlendMode.BLEND);
 
 	return window, renderer, true;
 }

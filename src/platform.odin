@@ -2,8 +2,8 @@ package main;
 
 import "core:math/rand"
 
-import sdl "shared:odin-sdl2"
-import sdl_image "shared:odin-sdl2/image"
+import sdl "vendor:sdl2"
+import img "vendor:sdl2/image"
 
 platforms: [dynamic] Platform;
 
@@ -23,8 +23,8 @@ draw_platform :: proc(renderer: ^sdl.Renderer, platform: ^Platform) {
 					   cast(i32) (platform.position.y - (platform.dimensions.y / 2)),
 					   cast(i32) platform.dimensions.x, cast(i32) platform.dimensions.y };
 	
-	sdl.set_render_draw_color(renderer, 0, 255, 0, 255);
-	sdl.render_fill_rect(renderer, &rect);
+	sdl.SetRenderDrawColor(renderer, 0, 255, 0, 255);
+	sdl.RenderFillRect(renderer, &rect);
 }
 
 random_platform :: proc() -> (platform: Platform) {

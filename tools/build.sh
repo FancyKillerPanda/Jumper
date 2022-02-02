@@ -7,6 +7,6 @@ mkdir $projectRoot/bin/ 2>/dev/null
 cd $projectRoot/bin/
 
 cp -r $projectRoot/res/ $projectRoot/bin/
-odin run $projectRoot/src/ -opt:0 -out:jumper -thread-count:8 -debug -collection:shared=$projectRoot/shared/
+odin run $projectRoot/src/ -opt:0 -out:jumper -thread-count:8 -debug
 
 cd $projectRoot

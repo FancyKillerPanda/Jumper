@@ -1,7 +1,7 @@
 package main;
 
-import sdl "shared:odin-sdl2"
-import sdl_image "shared:odin-sdl2/image"
+import sdl "vendor:sdl2"
+import img "vendor:sdl2/image"
 
 Vector2 :: distinct [2] f64;
 
@@ -28,8 +28,8 @@ Player :: struct {
 update_player :: proc(using player: ^Player, deltaTime: f64) {
 	acceleration = { 0, PLAYER_GRAVITY };
 	
-	isLeftPressed := keysPressed[sdl.Scancode.Left];
-	isRightPressed := keysPressed[sdl.Scancode.Right];
+	isLeftPressed := keysPressed[sdl.Scancode.LEFT];
+	isRightPressed := keysPressed[sdl.Scancode.RIGHT];
 	if isRightPressed || isLeftPressed {
 		ACC :: PLAYER_ACCELERATION;
 		acceleration.x = (ACC * cast(f64) cast(i64) isRightPressed) - (ACC * cast(f64) cast(i64) isLeftPressed);
@@ -89,7 +89,7 @@ update_player :: proc(using player: ^Player, deltaTime: f64) {
 
 	// Increases the jump power if we're holding space and on a platform
 	if is_player_standing_on_platform(player) {
-		if keysPressed[sdl.Scancode.Space] {
+		if keysPressed[sdl.Scancode.SPACE] {
 			jumpPower += (PLAYER_MAX_JUMP_POWER - PLAYER_MIN_JUMP_POWER) / 120.0;
 			if jumpPower > PLAYER_MAX_JUMP_POWER {
 				jumpPower = PLAYER_MAX_JUMP_POWER;
@@ -115,8 +115,8 @@ draw_player :: proc(renderer: ^sdl.Renderer, player: ^Player) {
 		cast(i32) (PLAYER_HEIGHT - (PLAYER_HEIGHT * jumpContraction)),
 	};
 	
-	sdl.set_render_draw_color(renderer, 255, 255, 0, 255);
-	sdl.render_fill_rect(renderer, &rect);
+	sdl.SetRenderDrawColor(renderer, 255, 255, 0, 255);
+	sdl.RenderFillRect(renderer, &rect);
 }
 
 player_jump :: proc(using player: ^Player) {
