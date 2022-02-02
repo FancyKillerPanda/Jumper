@@ -12,7 +12,7 @@ PLAYER_ACCELERATION :: 18000.0;
 PLAYER_FRICTION :: -6000.0;
 PLAYER_GRAVITY :: 15000.0;
 
-PLAYER_MIN_JUMP_POWER :: 1500.0;
+PLAYER_MIN_JUMP_POWER :: 1200.0;
 PLAYER_MAX_JUMP_POWER :: 4200.0;
 
 SCROLL_SPEED_INCREASE_RATE :: 25;
@@ -28,10 +28,11 @@ Player :: struct {
 update_player :: proc(using player: ^Player, deltaTime: f64) {
 	acceleration = { 0, PLAYER_GRAVITY };
 	
-	if keysPressed[sdl.Scancode.Right] {
-		acceleration.x = PLAYER_ACCELERATION;
-	} else if keysPressed[sdl.Scancode.Left] {
-		acceleration.x = -PLAYER_ACCELERATION;
+	isLeftPressed := keysPressed[sdl.Scancode.Left];
+	isRightPressed := keysPressed[sdl.Scancode.Right];
+	if isRightPressed || isLeftPressed {
+		ACC :: PLAYER_ACCELERATION;
+		acceleration.x = (ACC * cast(f64) cast(i64) isRightPressed) - (ACC * cast(f64) cast(i64) isLeftPressed);
 	}
 	
 	acceleration.x += velocity.x * PLAYER_FRICTION * deltaTime;
