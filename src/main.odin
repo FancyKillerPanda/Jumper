@@ -73,7 +73,8 @@ main :: proc() {
 		}
 	}
 
-	player := create_player();
+	player, playerSuccess := create_player(renderer);
+	if !playerSuccess do return;
 	reset_game(&player);
 	
 	lastTime := time.now();

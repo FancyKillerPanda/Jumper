@@ -15,6 +15,8 @@ PLAYER_MAX_JUMP_POWER :: 4200.0;
 SCROLL_SPEED_INCREASE_RATE :: 25;
 
 Player :: struct {
+	texture: ^sdl.Texture,
+	
 	position: Vector2,
 	dimensions: Vector2,
 
@@ -24,11 +26,24 @@ Player :: struct {
 	jumpPower: f64,
 }
 
-create_player :: proc() -> Player {
+create_player :: proc(renderer: ^sdl.Renderer) -> (Player, bool) {
 	player: Player;
-	player.dimensions = { 60, 80 };
+	player.texture = img.LoadTexture(renderer, "res/player.png");
+	if player.texture == nil {
+		printf("Error: Failed to load player texture.\n");
+		return player, false;
+	}
 
-	return player;
+	x, y: i32;
+	if sdl.QueryTexture(player.texture, nil, nil, &x, &y) < 0 {
+		printf("Error: Player texture is invalid.\n");
+		return player, false;
+	}
+
+	player.dimensions.x = cast(f64) x;
+	player.dimensions.y = cast(f64) y;
+	
+	return player, true;
 }
 
 update_player :: proc(using player: ^Player, deltaTime: f64) {
@@ -109,6 +124,7 @@ update_player :: proc(using player: ^Player, deltaTime: f64) {
 }
 
 draw_player :: proc(renderer: ^sdl.Renderer, using player: ^Player) {
+	/*
 	// The contration is the proportion of the jump power to the max jump power range,
 	// divided by two. This allows the player to contract to half its normal height
 	// when in the process of jumping.
@@ -120,9 +136,16 @@ draw_player :: proc(renderer: ^sdl.Renderer, using player: ^Player) {
 		cast(i32) dimensions.x,
 		cast(i32) (dimensions.y - (dimensions.y * jumpContraction)),
 	};
+	*/
 	
-	sdl.SetRenderDrawColor(renderer, 255, 255, 0, 255);
-	sdl.RenderFillRect(renderer, &rect);
+	rect: sdl.Rect = {
+		cast(i32) (position.x - (dimensions.x / 2)),
+		cast(i32) (position.y - (dimensions.y / 2)),
+		cast(i32) dimensions.x,
+		cast(i32) dimensions.y,
+	};
+	
+	sdl.RenderCopy(renderer, texture, nil, &rect);
 }
 
 player_jump :: proc(using player: ^Player) {
