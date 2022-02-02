@@ -53,7 +53,41 @@ update_player :: proc(using player: ^Player, deltaTime: f64) {
 	
 	velocity += acceleration * deltaTime;
 	velocity.x *= PLAYER_FRICTION;
-	position += velocity * deltaTime;
+
+	// If we're moving downward, check for platform collisions
+	if velocity.y >= 0 {
+		oldPosition := position;
+
+		// y-axis
+		position.y += velocity.y * deltaTime;
+		for platform in &platforms {
+			if oldPosition.y - (dimensions.y / 2) < platform.position.y - (platform.dimensions.y / 2) &&
+			   player_colliding_with_platform(player, &platform) {
+				// Move the player to be above the platform, not inside it
+				position.y = platform.position.y - (platform.dimensions.y / 2) - (dimensions.y / 2);
+				velocity.y = 0;
+			}
+		}
+		
+		// x-axis
+		position.x += velocity.x * deltaTime;
+		for platform in &platforms {
+			if oldPosition.y - (dimensions.y / 2) < platform.position.y - (platform.dimensions.y / 2) &&
+			   player_colliding_with_platform(player, &platform) {
+				// Move the player to be touching the vertical boundary of the platform, not inside it
+				if velocity.x > 0 {
+					position.x = platform.position.x - (platform.dimensions.x / 2) - (dimensions.x / 2);
+				} else {
+					position.x = platform.position.x + (platform.dimensions.x / 2) + (dimensions.x / 2);
+				}
+
+				velocity.x = 0;
+			}
+		}
+	}
+	else {
+		position += velocity * deltaTime;
+	}
 
 	// Wraps the x-axis around
 	if position.x + (dimensions.x / 2.0) < 0.0 {
@@ -66,16 +100,6 @@ update_player :: proc(using player: ^Player, deltaTime: f64) {
 	if position.y > SCREEN_HEIGHT - (dimensions.y / 2) {
 		reset_game(player);
 		return;
-	}
-
-	// If we're moving downward, check for platform collisions
-	if velocity.y >= 0 {
-		for platform in &platforms {
-			if player_colliding_with_platform(player, &platform) {
-				position.y = platform.position.y - (platform.dimensions.y / 2) - (dimensions.y / 2);
-				velocity.y = 0;
-			}
-		}
 	}
 
 	// Moves everything on screen downward if we go into the top quarter
@@ -146,8 +170,8 @@ is_player_standing_on_platform :: proc(using player: ^Player) -> bool {
 }
 
 player_colliding_with_platform :: proc(using player: ^Player, platform: ^Platform) -> bool {
-	return position.x + (dimensions.x / 2) >= platform.position.x - (platform.dimensions.x / 2) &&
-		   position.x - (dimensions.x / 2) <= platform.position.x + (platform.dimensions.x / 2) &&
-		   position.y + (dimensions.y / 2) >= platform.position.y - (platform.dimensions.y / 2) &&
-		   position.y - (dimensions.y / 2) <= platform.position.y + (platform.dimensions.y / 2);
+	return position.x + (dimensions.x / 2) > platform.position.x - (platform.dimensions.x / 2) &&
+		   position.x - (dimensions.x / 2) < platform.position.x + (platform.dimensions.x / 2) &&
+		   position.y + (dimensions.y / 2) > platform.position.y - (platform.dimensions.y / 2) &&
+		   position.y - (dimensions.y / 2) < platform.position.y + (platform.dimensions.y / 2);
 }
