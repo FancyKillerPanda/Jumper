@@ -30,7 +30,7 @@ Player :: struct {
 create_player :: proc(renderer: ^sdl.Renderer) -> Player {
 	player: Player;
 
-	player.dimensions = Vector2 { 60, 80 };
+	player.dimensions = Vector2 { 45, 75 };
 	
 	player.idleSpriteSheet = new(SpriteSheet);
 	init_sprite_sheet(player.idleSpriteSheet, renderer, "res/player/spritesheet.png", player.dimensions,
