@@ -1,6 +1,8 @@
 package main;
 
 import "core:fmt"
+import "core:os"
+import "core:strconv"
 import "core:strings"
 import "core:time"
 
@@ -12,6 +14,8 @@ printf :: fmt.printf;
 
 SCREEN_WIDTH :: 720;
 SCREEN_HEIGHT :: 960;
+
+HIGH_SCORE_FILEPATH :: "res/high_score.txt";
 
 keysPressed: [sdl.Scancode.NUM_SCANCODES] bool;
 
@@ -25,8 +29,8 @@ GameState :: enum {
 currentState: GameState;
 gameMode: GameState;
 scrollSpeed: f64;
-currentScore: u32;
-highScore: u32;
+currentScore: u64;
+highScore: u64;
 
 main :: proc() {
 	if !init_dependencies() do return;
@@ -49,6 +53,16 @@ main :: proc() {
 	pausedText := create_text(renderer, titleFont, "PAUSED");
 	pausedHelpText := create_text(renderer, helpFont, "Press escape to resume...");
 	
+	// Loads the highscore if possible
+	highScoreData, openSuccess := os.read_entire_file(HIGH_SCORE_FILEPATH);
+	if openSuccess {
+		printf("{}\n", highScoreData);
+		value, convertSuccess := strconv.parse_u64(cast(string) highScoreData, 10);
+		if convertSuccess {
+			highScore = value;
+		}
+	}
+
 	player: Player;
 	reset_game(&player);
 	
@@ -139,6 +153,10 @@ main :: proc() {
 
 		sdl.RenderPresent(renderer);
 	}
+
+	if !os.write_entire_file(HIGH_SCORE_FILEPATH, transmute([] u8) fmt.tprintf("{}", highScore)) {
+		printf("Error: Failed to write high score to file.\n");
+	}
 }
 
 reset_game :: proc(player: ^Player) {
@@ -160,7 +178,7 @@ reset_game :: proc(player: ^Player) {
 	currentScore = 0;
 }
 
-add_to_score :: proc(amount: u32) {
+add_to_score :: proc(amount: u64) {
 	currentScore += amount;
 	if currentScore > highScore {
 		highScore = currentScore;
