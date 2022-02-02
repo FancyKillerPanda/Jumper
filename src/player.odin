@@ -5,9 +5,6 @@ import img "vendor:sdl2/image"
 
 Vector2 :: distinct [2] f64;
 
-PLAYER_WIDTH :: 60;
-PLAYER_HEIGHT :: 80;
-
 PLAYER_ACCELERATION :: 18000.0;
 PLAYER_FRICTION :: -6000.0;
 PLAYER_GRAVITY :: 15000.0;
@@ -19,10 +16,19 @@ SCROLL_SPEED_INCREASE_RATE :: 25;
 
 Player :: struct {
 	position: Vector2,
+	dimensions: Vector2,
+
 	velocity: Vector2,
 	acceleration: Vector2,
 
 	jumpPower: f64,
+}
+
+create_player :: proc() -> Player {
+	player: Player;
+	player.dimensions = { 60, 80 };
+
+	return player;
 }
 
 update_player :: proc(using player: ^Player, deltaTime: f64) {
@@ -40,14 +46,14 @@ update_player :: proc(using player: ^Player, deltaTime: f64) {
 	position += (velocity * deltaTime) + (acceleration * 0.5 * deltaTime * deltaTime);
 
 	// Wraps the x-axis around
-	if position.x + (PLAYER_WIDTH / 2.0) < 0.0 {
-		position.x = SCREEN_WIDTH + (PLAYER_WIDTH / 2.0);
-	} else if position.x > SCREEN_WIDTH + (PLAYER_WIDTH / 2.0) {
-		position.x = -PLAYER_WIDTH / 2.0;
+	if position.x + (dimensions.x / 2.0) < 0.0 {
+		position.x = SCREEN_WIDTH + (dimensions.x / 2.0);
+	} else if position.x > SCREEN_WIDTH + (dimensions.x / 2.0) {
+		position.x = -dimensions.x / 2.0;
 	}
 
 	// Player can't go below the screen
-	if position.y > SCREEN_HEIGHT - (PLAYER_HEIGHT / 2) {
+	if position.y > SCREEN_HEIGHT - (dimensions.y / 2) {
 		reset_game(player);
 		return;
 	}
@@ -56,7 +62,7 @@ update_player :: proc(using player: ^Player, deltaTime: f64) {
 	if velocity.y >= 0 {
 		for platform in &platforms {
 			if player_colliding_with_platform(player, &platform) {
-				position.y = platform.position.y - (platform.dimensions.y / 2) - (PLAYER_HEIGHT / 2);
+				position.y = platform.position.y - (platform.dimensions.y / 2) - (dimensions.y / 2);
 				velocity.y = 0;
 			}
 		}
@@ -102,17 +108,17 @@ update_player :: proc(using player: ^Player, deltaTime: f64) {
 	}
 }
 
-draw_player :: proc(renderer: ^sdl.Renderer, player: ^Player) {
+draw_player :: proc(renderer: ^sdl.Renderer, using player: ^Player) {
 	// The contration is the proportion of the jump power to the max jump power range,
 	// divided by two. This allows the player to contract to half its normal height
 	// when in the process of jumping.
-	jumpContraction := ((player.jumpPower - PLAYER_MIN_JUMP_POWER) / (PLAYER_MAX_JUMP_POWER - PLAYER_MIN_JUMP_POWER)) / 2;
+	jumpContraction := ((jumpPower - PLAYER_MIN_JUMP_POWER) / (PLAYER_MAX_JUMP_POWER - PLAYER_MIN_JUMP_POWER)) / 2;
 	
 	rect: sdl.Rect = {
-		cast(i32) player.position.x - (PLAYER_WIDTH / 2),
-		cast(i32) (player.position.y - (PLAYER_HEIGHT / 2) + (PLAYER_HEIGHT * jumpContraction)),
-		PLAYER_WIDTH,
-		cast(i32) (PLAYER_HEIGHT - (PLAYER_HEIGHT * jumpContraction)),
+		cast(i32) (position.x - (dimensions.x / 2)),
+		cast(i32) (position.y - (dimensions.y / 2) + (dimensions.y * jumpContraction)),
+		cast(i32) dimensions.x,
+		cast(i32) (dimensions.y - (dimensions.y * jumpContraction)),
 	};
 	
 	sdl.SetRenderDrawColor(renderer, 255, 255, 0, 255);
@@ -139,8 +145,8 @@ is_player_standing_on_platform :: proc(using player: ^Player) -> bool {
 }
 
 player_colliding_with_platform :: proc(using player: ^Player, platform: ^Platform) -> bool {
-	return position.x + (PLAYER_WIDTH / 2) >= platform.position.x - (platform.dimensions.x / 2) &&
-		   position.x - (PLAYER_WIDTH / 2) <= platform.position.x + (platform.dimensions.x / 2) &&
-		   position.y + (PLAYER_HEIGHT / 2) >= platform.position.y - (platform.dimensions.y / 2) &&
-		   position.y - (PLAYER_HEIGHT / 2) <= platform.position.y + (platform.dimensions.y / 2);
+	return position.x + (dimensions.x / 2) >= platform.position.x - (platform.dimensions.x / 2) &&
+		   position.x - (dimensions.x / 2) <= platform.position.x + (platform.dimensions.x / 2) &&
+		   position.y + (dimensions.y / 2) >= platform.position.y - (platform.dimensions.y / 2) &&
+		   position.y - (dimensions.y / 2) <= platform.position.y + (platform.dimensions.y / 2);
 }

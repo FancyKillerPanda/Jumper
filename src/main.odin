@@ -73,7 +73,7 @@ main :: proc() {
 		}
 	}
 
-	player: Player;
+	player := create_player();
 	reset_game(&player);
 	
 	lastTime := time.now();
@@ -180,14 +180,14 @@ reset_game :: proc(player: ^Player) {
 	clear(&platforms);
 	append(&platforms, Platform {
 		position = { SCREEN_WIDTH / 2, SCREEN_HEIGHT - (SCREEN_HEIGHT / 32) },
-		dimensions = { SCREEN_WIDTH + (PLAYER_WIDTH * 2), SCREEN_HEIGHT / 16 },
+		dimensions = { SCREEN_WIDTH + (player.dimensions.x * 2), SCREEN_HEIGHT / 16 },
 	});
 
 	for i in 0..3 {
 		append(&platforms, random_platform_on_screen());
 	}
 
-	player.position = { SCREEN_WIDTH / 2, platforms[0].position.y - (platforms[0].dimensions.y / 2) - (PLAYER_HEIGHT / 2)};
+	player.position = { SCREEN_WIDTH / 2, platforms[0].position.y - (platforms[0].dimensions.y / 2) - (player.dimensions.y / 2)};
 
 	currentState = .StartScreen;
 	gameMode = .PlayingNormal; // This will be changed when it is selected by the user
