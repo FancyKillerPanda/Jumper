@@ -1,5 +1,7 @@
 package main;
 
+import "core:slice"
+
 import sdl "vendor:sdl2"
 import img "vendor:sdl2/image"
 
@@ -9,10 +11,12 @@ SpriteSheet :: struct {
 	textureRect: sdl.Rect,
 	
 	subrectDimensions: Vector2,
-	currentSubrect: u32,
 	numberOfSubrects: u32,
 
+	timeSinceLastTextureChange: f64,
+
 	animationOrder: [] u32,
+	animationCurrentIndex: u32,
 	animationDelayMs: u32,
 }
 
@@ -31,11 +35,21 @@ init_sprite_sheet :: proc(spriteSheet: ^SpriteSheet, renderer: ^sdl.Renderer, fi
 	}
 
 	spriteSheet.subrectDimensions = subrectDimensions;
-	spriteSheet.currentSubrect = animationOrder[0];
 	spriteSheet.numberOfSubrects = numberOfSubrects;
 
-	spriteSheet.animationOrder = animationOrder;
+	spriteSheet.animationOrder = slice.clone(animationOrder);
 	spriteSheet.animationDelayMs = animationDelayMs;
+}
+
+update_sprite_sheet :: proc(using spriteSheet: ^SpriteSheet, deltaTime: f64) {
+	timeSinceLastTextureChange += deltaTime;
+
+	if timeSinceLastTextureChange >= (cast(f64) animationDelayMs / 1000.0) {
+		timeSinceLastTextureChange = 0;
+		
+		animationCurrentIndex += 1;
+		animationCurrentIndex %= cast(u32) len(animationOrder);
+	}
 }
 
 draw_sprite_sheet :: proc(using spriteSheet: ^SpriteSheet, position: Vector2) {
@@ -45,7 +59,7 @@ draw_sprite_sheet :: proc(using spriteSheet: ^SpriteSheet, position: Vector2) {
 	rect.w = cast(i32) subrectDimensions.x;
 	rect.h = cast(i32) subrectDimensions.y;
 	
-	subrect := get_sprite_sheet_subrect(spriteSheet, spriteSheet.currentSubrect);
+	subrect := get_sprite_sheet_subrect(spriteSheet, spriteSheet.animationOrder[spriteSheet.animationCurrentIndex]);
 	sdl.RenderCopy(renderer, texture, &subrect, &rect);
 }
 

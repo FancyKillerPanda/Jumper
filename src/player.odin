@@ -33,7 +33,7 @@ create_player :: proc(renderer: ^sdl.Renderer) -> Player {
 	player.dimensions = Vector2 { 60, 80 };
 	
 	player.idleSpriteSheet = new(SpriteSheet);
-	init_sprite_sheet(player.idleSpriteSheet, renderer, "res/player/spritesheet.png", player.dimensions, 4, { 0, 1, 2, 3, 2, 1 }, 100);
+	init_sprite_sheet(player.idleSpriteSheet, renderer, "res/player/spritesheet.png", player.dimensions, 4, { 0, 1, 2, 3, 2, 1 }, 150);
 
 	player.currentSpriteSheet = player.idleSpriteSheet;
 	
@@ -115,6 +115,9 @@ update_player :: proc(using player: ^Player, deltaTime: f64) {
 	} else {
 		jumpPower = PLAYER_MIN_JUMP_POWER;
 	}
+
+	// Changes the texture if necessary
+	update_sprite_sheet(currentSpriteSheet, deltaTime);
 }
 
 draw_player :: proc(renderer: ^sdl.Renderer, using player: ^Player) {
