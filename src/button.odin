@@ -84,7 +84,12 @@ button_group_handle_mouse_up :: proc(using buttonGroup: ^ButtonGroup, event: ^sd
 
 	mouseRect: sdl.Rect = { event.button.x, event.button.y, 1, 1 };
 	if sdl.HasIntersection(&mouseRect, &buttonGroup.buttonTexts[active].rect) {
-		return active;
+		change_text_colour(buttonGroup.renderer, &buttonGroup.buttonTexts[active], buttonGroup.hoverColour);
+
+		oldActive := active;
+		active = -1;
+		
+		return oldActive;
 	}
 	
 	return -1;

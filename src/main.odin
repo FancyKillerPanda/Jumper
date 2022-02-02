@@ -91,9 +91,6 @@ main :: proc() {
 					currentState = .PlayingNormal;
 				} else if result == 1 {
 					currentState = .PlayingContinuousScrolling;
-				} else {
-					printf("Error: Managed to click on a button that doesn't exist!\n");
-					currentState = .PlayingNormal;
 				}
 
 				gameMode = currentState;
