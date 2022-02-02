@@ -5,12 +5,12 @@ import img "vendor:sdl2/image"
 
 Vector2 :: distinct [2] f64;
 
-PLAYER_ACCELERATION :: 18000.0;
-PLAYER_FRICTION :: -6000.0;
-PLAYER_GRAVITY :: 15000.0;
+PLAYER_ACCELERATION :: 1800.0;
+PLAYER_FRICTION :: 0.92;
+PLAYER_GRAVITY :: 4000.0;
 
-PLAYER_MIN_JUMP_POWER :: 1200.0;
-PLAYER_MAX_JUMP_POWER :: 4200.0;
+PLAYER_MIN_JUMP_POWER :: 1000.0;
+PLAYER_MAX_JUMP_POWER :: 2200.0;
 
 SCROLL_SPEED_INCREASE_RATE :: 25;
 
@@ -50,14 +50,9 @@ update_player :: proc(using player: ^Player, deltaTime: f64) {
 		acceleration.x = (ACC * cast(f64) cast(i64) isRightPressed) - (ACC * cast(f64) cast(i64) isLeftPressed);
 	}
 	
-	acceleration.x += velocity.x * PLAYER_FRICTION * deltaTime;
-	
 	velocity += acceleration * deltaTime;
-	if abs(velocity.x) <= 0.1 {
-		velocity.x = 0;
-	}
-	
-	position += (velocity * deltaTime) + (acceleration * 0.5 * deltaTime * deltaTime);
+	velocity.x *= PLAYER_FRICTION;
+	position += velocity * deltaTime;
 
 	// Wraps the x-axis around
 	if position.x + (dimensions.x / 2.0) < 0.0 {
@@ -110,7 +105,7 @@ update_player :: proc(using player: ^Player, deltaTime: f64) {
 	// Increases the jump power if we're holding space and on a platform
 	if is_player_standing_on_platform(player) {
 		if keysPressed[sdl.Scancode.SPACE] {
-			jumpPower += (PLAYER_MAX_JUMP_POWER - PLAYER_MIN_JUMP_POWER) / 120.0;
+			jumpPower += (PLAYER_MAX_JUMP_POWER - PLAYER_MIN_JUMP_POWER) / 60.0;
 			if jumpPower > PLAYER_MAX_JUMP_POWER {
 				jumpPower = PLAYER_MAX_JUMP_POWER;
 			}

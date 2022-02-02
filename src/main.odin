@@ -127,10 +127,14 @@ main :: proc() {
 		// Timing
 		now := time.now();
 		deltaTime := cast(f64) time.diff(lastTime, now) / cast(f64) time.Second;
-		lastTime = now;
-
+		
 		if currentState == .PlayingNormal || currentState == .PlayingContinuousScrolling {
-			update_player(&player, deltaTime);
+			if deltaTime >= 0.016 {
+				lastTime = now;
+				update_player(&player, deltaTime);
+			}
+		} else {
+			lastTime = now;
 		}
 
 		sdl.SetRenderDrawColor(renderer, 200, 200, 200, 255);
