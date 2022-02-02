@@ -18,9 +18,11 @@ GameState :: enum {
 	StartScreen,
 	PlayingNormal,
 	PlayingContinuousScrolling,
+	Paused,
 }
 
 currentState: GameState;
+gameMode: GameState;
 scrollSpeed: f64;
 
 main :: proc() {
@@ -40,6 +42,9 @@ main :: proc() {
 	jumperText := create_text(renderer, titleFont, "JUMPER");
 	helpText := create_text(renderer, helpFont, "Left/right arrows to move, space to jump!");
 	modeButtons := create_button_group(renderer, helpFont, { "Normal Mode", "Continuous Scrolling" });
+	
+	pausedText := create_text(renderer, titleFont, "PAUSED");
+	pausedHelpText := create_text(renderer, helpFont, "Press escape to resume...");
 	
 	player: Player;
 	reset_game(&player);
@@ -65,6 +70,13 @@ main :: proc() {
 						if currentState == .PlayingNormal || currentState == .PlayingContinuousScrolling {
 							player_jump(&player);
 						}
+
+					case sdl.Scancode.Escape:
+						if currentState == .Paused {
+							currentState = gameMode;
+						} else if currentState == gameMode {
+							currentState = .Paused;
+						}
 				}
 
 			case sdl.Event_Type.Mouse_Motion:
@@ -79,7 +91,12 @@ main :: proc() {
 					currentState = .PlayingNormal;
 				} else if result == 1 {
 					currentState = .PlayingContinuousScrolling;
+				} else {
+					printf("Error: Managed to click on a button that doesn't exist!\n");
+					currentState = .PlayingNormal;
 				}
+
+				gameMode = currentState;
 			}
 		}
 
@@ -99,15 +116,21 @@ main :: proc() {
 		draw_player(renderer, &player);
 
 		// Draws a dark overlay
-		if currentState == .StartScreen {
+		if currentState == .StartScreen || currentState == .Paused {
 			fillRect: sdl.Rect = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT }
 			
 			sdl.set_render_draw_color(renderer, 50, 50, 50, 200);
 			sdl.render_fill_rect(renderer, &fillRect);
-			
+		}
+
+		// Text for the various splash screens
+		if currentState == .StartScreen {
 			draw_text(renderer, &jumperText, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 4);
 			draw_text(renderer, &helpText, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 3);
 			draw_button_group(&modeButtons, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
+		} else if currentState == .Paused {
+			draw_text(renderer, &pausedText, SCREEN_WIDTH / 2, SCREEN_HEIGHT * 4 / 9);
+			draw_text(renderer, &pausedHelpText, SCREEN_WIDTH / 2, SCREEN_HEIGHT * 5 / 9);
 		}
 
 		sdl.render_present(renderer);
@@ -128,6 +151,7 @@ reset_game :: proc(player: ^Player) {
 	player.position = { SCREEN_WIDTH / 2, platforms[0].position.y - (platforms[0].dimensions.y / 2) - (PLAYER_HEIGHT / 2)};
 
 	currentState = .StartScreen;
+	gameMode = .PlayingNormal; // This will be changed when it is selected by the user
 	scrollSpeed = 0;
 }
 
