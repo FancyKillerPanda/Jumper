@@ -29,8 +29,10 @@ GameState :: enum {
 currentState: GameState;
 gameMode: GameState;
 scrollSpeed: f64;
+
 currentScore: u64;
-highScore: u64;
+highScoreNormalMode: u64;
+highScoreContinuousScrolling: u64;
 
 main :: proc() {
 	if !init_dependencies() do return;
@@ -56,10 +58,18 @@ main :: proc() {
 	// Loads the highscore if possible
 	highScoreData, openSuccess := os.read_entire_file(HIGH_SCORE_FILEPATH);
 	if openSuccess {
-		printf("{}\n", highScoreData);
-		value, convertSuccess := strconv.parse_u64(cast(string) highScoreData, 10);
-		if convertSuccess {
-			highScore = value;
+		lastSpaceIndex := strings.last_index_byte(cast(string) highScoreData, ' ');
+
+		if lastSpaceIndex != -1 {
+			value, convertSuccess := strconv.parse_u64(cast(string) highScoreData[: lastSpaceIndex], 10);
+			if convertSuccess {
+				highScoreNormalMode = value;
+			}
+
+			value, convertSuccess = strconv.parse_u64(cast(string) highScoreData[lastSpaceIndex + 1 :], 10);
+			if convertSuccess {
+				highScoreContinuousScrolling = value;
+			}
 		}
 	}
 
@@ -126,6 +136,13 @@ main :: proc() {
 		sdl.SetRenderDrawColor(renderer, 200, 200, 200, 255);
 		sdl.RenderClear(renderer);
 
+		highScore: u64;
+		if gameMode == .PlayingNormal {
+			highScore = highScoreNormalMode;
+		} else if gameMode == .PlayingContinuousScrolling {
+			highScore = highScoreContinuousScrolling;
+		}
+
 		currentScoreText := create_text(renderer, helpFont, strings.clone_to_cstring(fmt.tprintf("Score: {} (Highscore: {})", currentScore, highScore), context.temp_allocator));
 		defer free_text(&currentScoreText);
 		
@@ -154,7 +171,7 @@ main :: proc() {
 		sdl.RenderPresent(renderer);
 	}
 
-	if !os.write_entire_file(HIGH_SCORE_FILEPATH, transmute([] u8) fmt.tprintf("{}", highScore)) {
+	if !os.write_entire_file(HIGH_SCORE_FILEPATH, transmute([] u8) fmt.tprintf("{} {}", highScoreNormalMode, highScoreContinuousScrolling)) {
 		printf("Error: Failed to write high score to file.\n");
 	}
 }
@@ -180,8 +197,17 @@ reset_game :: proc(player: ^Player) {
 
 add_to_score :: proc(amount: u64) {
 	currentScore += amount;
-	if currentScore > highScore {
-		highScore = currentScore;
+	
+	if gameMode == .PlayingNormal {
+		if currentScore > highScoreNormalMode {
+			highScoreNormalMode = currentScore;
+		}
+	} else if gameMode == .PlayingContinuousScrolling {
+		if currentScore > highScoreContinuousScrolling {
+			highScoreContinuousScrolling = currentScore;
+		}
+	} else {
+		assert(false);
 	}
 }
 
