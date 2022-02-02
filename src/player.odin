@@ -15,7 +15,8 @@ PLAYER_MAX_JUMP_POWER :: 4200.0;
 SCROLL_SPEED_INCREASE_RATE :: 25;
 
 Player :: struct {
-	texture: ^sdl.Texture,
+	currentSpriteSheet: ^SpriteSheet,
+	idleSpriteSheet: ^SpriteSheet,
 	
 	position: Vector2,
 	dimensions: Vector2,
@@ -26,24 +27,17 @@ Player :: struct {
 	jumpPower: f64,
 }
 
-create_player :: proc(renderer: ^sdl.Renderer) -> (Player, bool) {
+create_player :: proc(renderer: ^sdl.Renderer) -> Player {
 	player: Player;
-	player.texture = img.LoadTexture(renderer, "res/player.png");
-	if player.texture == nil {
-		printf("Error: Failed to load player texture.\n");
-		return player, false;
-	}
 
-	x, y: i32;
-	if sdl.QueryTexture(player.texture, nil, nil, &x, &y) < 0 {
-		printf("Error: Player texture is invalid.\n");
-		return player, false;
-	}
-
-	player.dimensions.x = cast(f64) x;
-	player.dimensions.y = cast(f64) y;
+	player.dimensions = Vector2 { 60, 80 };
 	
-	return player, true;
+	player.idleSpriteSheet = new(SpriteSheet);
+	init_sprite_sheet(player.idleSpriteSheet, renderer, "res/player/spritesheet.png", player.dimensions, 4, { 0, 1, 2, 3, 2, 1 }, 100);
+
+	player.currentSpriteSheet = player.idleSpriteSheet;
+	
+	return player;
 }
 
 update_player :: proc(using player: ^Player, deltaTime: f64) {
@@ -124,28 +118,7 @@ update_player :: proc(using player: ^Player, deltaTime: f64) {
 }
 
 draw_player :: proc(renderer: ^sdl.Renderer, using player: ^Player) {
-	/*
-	// The contration is the proportion of the jump power to the max jump power range,
-	// divided by two. This allows the player to contract to half its normal height
-	// when in the process of jumping.
-	jumpContraction := ((jumpPower - PLAYER_MIN_JUMP_POWER) / (PLAYER_MAX_JUMP_POWER - PLAYER_MIN_JUMP_POWER)) / 2;
-	
-	rect: sdl.Rect = {
-		cast(i32) (position.x - (dimensions.x / 2)),
-		cast(i32) (position.y - (dimensions.y / 2) + (dimensions.y * jumpContraction)),
-		cast(i32) dimensions.x,
-		cast(i32) (dimensions.y - (dimensions.y * jumpContraction)),
-	};
-	*/
-	
-	rect: sdl.Rect = {
-		cast(i32) (position.x - (dimensions.x / 2)),
-		cast(i32) (position.y - (dimensions.y / 2)),
-		cast(i32) dimensions.x,
-		cast(i32) dimensions.y,
-	};
-	
-	sdl.RenderCopy(renderer, texture, nil, &rect);
+	draw_sprite_sheet(currentSpriteSheet, position);
 }
 
 player_jump :: proc(using player: ^Player) {

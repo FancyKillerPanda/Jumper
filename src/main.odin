@@ -73,8 +73,7 @@ main :: proc() {
 		}
 	}
 
-	player, playerSuccess := create_player(renderer);
-	if !playerSuccess do return;
+	player := create_player(renderer);
 	reset_game(&player);
 	
 	lastTime := time.now();
@@ -143,7 +142,7 @@ main :: proc() {
 		} else if gameMode == .PlayingContinuousScrolling {
 			highScore = highScoreContinuousScrolling;
 		}
-
+		
 		currentScoreText := create_text(renderer, helpFont, strings.clone_to_cstring(fmt.tprintf("Score: {} (Highscore: {})", currentScore, highScore), context.temp_allocator));
 		defer free_text(&currentScoreText);
 		
