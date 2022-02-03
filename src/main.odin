@@ -165,7 +165,15 @@ main :: proc() {
 				if !update_player(&player, deltaTime) {
 					currentState = .GameOverScreen;
 					free_text(gameOverScoreText);
-					gameOverScoreText^ = create_text(renderer, helpFont, strings.clone_to_cstring(fmt.tprintf("Score: {} (Highscore: {})", currentScore, get_current_mode_high_score())));
+
+					scoreString: string;
+					if currentScore > get_current_mode_high_score() {
+						scoreString = fmt.tprintf("New highscore: {}!", currentScore);
+					} else {
+						scoreString = fmt.tprintf("Score: {} (Highscore: {})", currentScore, get_current_mode_high_score());
+					}
+
+					gameOverScoreText^ = create_text(renderer, helpFont, strings.clone_to_cstring(scoreString));
 				}
 			}
 		}
@@ -229,12 +237,11 @@ reset_game :: proc(renderer: ^sdl.Renderer, player: ^Player) {
 
 	currentState = .StartScreen;
 	scrollSpeed = 0;
+	try_set_highscore();
 	currentScore = 0;
 }
 
-add_to_score :: proc(amount: u64) {
-	currentScore += amount;
-	
+try_set_highscore :: proc() {
 	if gameMode == .PlayingNormal {
 		if currentScore > highScoreNormalMode {
 			highScoreNormalMode = currentScore;

@@ -122,10 +122,13 @@ random_platform_on_screen :: proc(renderer: ^sdl.Renderer) -> (platform: Platfor
 delete_off_screen_platforms_and_regenerate :: proc(renderer: ^sdl.Renderer) {
 	for i := 0; i < len(platforms); {
 		if platforms[i].position.y - (platforms[i].dimensions.y / 2) >= SCREEN_HEIGHT {
+			currentScore += 100;
+			if platforms[i].moving {
+				currentScore += 50; // Bonus points
+			}
+			
 			ordered_remove(&platforms, i);
 			append(&platforms, random_platform(renderer));
-
-			add_to_score(100);
 		} else {
 			i += 1;
 		}
