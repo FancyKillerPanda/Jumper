@@ -1,6 +1,7 @@
 package main;
 
 import "core:fmt"
+import "core:math/rand"
 import "core:os"
 import "core:strconv"
 import "core:strings"
@@ -35,6 +36,8 @@ highScoreNormalMode: u64;
 highScoreContinuousScrolling: u64;
 
 main :: proc() {
+	rand.set_global_seed(time.read_cycle_counter());
+	
 	if !init_dependencies() do return;
 	defer quit_dependencies();
 
@@ -73,6 +76,8 @@ main :: proc() {
 		}
 	}
 
+	init_clouds(renderer);
+	
 	player := create_player(renderer);
 	reset_game(renderer, &player);
 	
@@ -128,16 +133,16 @@ main :: proc() {
 		now := time.now();
 		deltaTime := cast(f64) time.diff(lastTime, now) / cast(f64) time.Second;
 		
-		if currentState == .PlayingNormal || currentState == .PlayingContinuousScrolling {
-			if deltaTime >= 0.016 {
-				lastTime = now;
+		if deltaTime >= 0.016 {
+			lastTime = now;
+			update_clouds(deltaTime);
+			
+			if currentState == .PlayingNormal || currentState == .PlayingContinuousScrolling {
 				update_player(&player, deltaTime);
 			}
-		} else {
-			lastTime = now;
 		}
 
-		sdl.SetRenderDrawColor(renderer, 200, 200, 200, 255);
+		sdl.SetRenderDrawColor(renderer, 0, 255, 255, 255);
 		sdl.RenderClear(renderer);
 
 		highScore: u64;
@@ -147,9 +152,10 @@ main :: proc() {
 			highScore = highScoreContinuousScrolling;
 		}
 		
-		currentScoreText := create_text(renderer, helpFont, strings.clone_to_cstring(fmt.tprintf("Score: {} (Highscore: {})", currentScore, highScore), context.temp_allocator));
+		currentScoreText := create_text(renderer, helpFont, strings.clone_to_cstring(fmt.tprintf("Score: {} (Highscore: {})", currentScore, highScore), context.temp_allocator), { 180, 0, 255, 255 });
 		defer free_text(&currentScoreText);
 		
+		draw_clouds();
 		draw_platforms(renderer);
 		draw_text(renderer, &currentScoreText, SCREEN_WIDTH / 2, currentScoreText.rect.h);
 		draw_player(&player);
