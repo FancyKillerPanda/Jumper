@@ -20,6 +20,7 @@ Player :: struct {
 	currentSpriteSheet: ^SpriteSheet,
 	idleSpriteSheet: ^SpriteSheet,
 	jumpPowerSpriteSheet: ^SpriteSheet,
+	jumpSpriteSheet: ^SpriteSheet,
 	
 	position: Vector2,
 	dimensions: Vector2,
@@ -38,10 +39,12 @@ create_player :: proc(renderer: ^sdl.Renderer) -> Player {
 	
 	player.idleSpriteSheet = new(SpriteSheet);
 	player.jumpPowerSpriteSheet = new(SpriteSheet);
-	init_sprite_sheet(player.idleSpriteSheet, renderer, "res/player/idle_spritesheet.png", player.dimensions,
+	player.jumpSpriteSheet = new(SpriteSheet);
+	init_sprite_sheet(player.idleSpriteSheet, renderer, "res/player/idle_spritesheet.png", Vector2 { 45, 75 },
 					  4, { 0, 1, 0, 1, 0, 1, 0, 3, 0, 1, 0, 1, 0, 1, 0, 1, 2, 3, 0, 1, 0, 1, 0, 1, 0, 3 }, 150);
-	init_sprite_sheet(player.jumpPowerSpriteSheet, renderer, "res/player/jump_power_spritesheet.png", player.dimensions,
+	init_sprite_sheet(player.jumpPowerSpriteSheet, renderer, "res/player/jump_power_spritesheet.png", Vector2 { 45, 75 },
 					  10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, 0);
+	init_sprite_sheet(player.jumpSpriteSheet, renderer, "res/player/jump_spritesheet.png", Vector2 { 45, 80 }, 2, { 0, 1 }, 0);
 
 	player.currentSpriteSheet = player.idleSpriteSheet;
 	
@@ -157,9 +160,15 @@ update_player :: proc(using player: ^Player, deltaTime: f64) -> bool {
 			else 								do sprite_sheet_set_frame(jumpPowerSpriteSheet, 9);
 		} else {
 			jumpPower = PLAYER_MIN_JUMP_POWER;
+			currentSpriteSheet = idleSpriteSheet;
 		}
 	} else {
 		jumpPower = PLAYER_MIN_JUMP_POWER;
+
+		if velocity.y > 0 {
+			currentSpriteSheet = jumpSpriteSheet;
+			sprite_sheet_set_frame(jumpSpriteSheet, 1);
+		}
 	}
 
 	// Changes the texture if necessary
@@ -179,8 +188,8 @@ player_jump :: proc(using player: ^Player) {
 		jumpPower = PLAYER_MIN_JUMP_POWER;
 
 		// TODO(fkp): Jumping animation
-		currentSpriteSheet = idleSpriteSheet;
-		sprite_sheet_set_frame(idleSpriteSheet, 0);
+		currentSpriteSheet = jumpSpriteSheet;
+		sprite_sheet_set_frame(jumpSpriteSheet, 0);
 	}
 }
 
