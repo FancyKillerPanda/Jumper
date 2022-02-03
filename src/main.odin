@@ -58,7 +58,7 @@ main :: proc() {
 	set_button_group_colours(&modeButtons, { 255, 255, 255, 255 }, { 180, 0, 255, 255 }, { 90, 0, 127, 255 });
 	
 	pausedText := create_text(renderer, titleFont, "PAUSED");
-	pausedHelpText := create_text(renderer, helpFont, "Press escape to resume...");
+	pausedHelpText := create_text(renderer, helpFont, "Press enter/escape to resume...");
 	
 	gameOverText := create_text(renderer, titleFont, "GAME OVER");
 	gameOverScoreText := new(Text); // Will be initialised later
@@ -120,7 +120,9 @@ main :: proc() {
 						}
 						
 					case sdl.Scancode.RETURN:
-						if currentState == .GameOverScreen {
+						if currentState == .Paused {
+							currentState = gameMode;
+						} else if currentState == .GameOverScreen {
 							reset_game(renderer, &player);
 							currentState = gameMode;
 						}
@@ -150,8 +152,11 @@ main :: proc() {
 		
 		if deltaTime >= 0.016 {
 			lastTime = now;
-			update_clouds(deltaTime);
 			
+			if currentState != .Paused {
+				update_clouds(deltaTime);
+			}
+
 			if currentState == .PlayingNormal || currentState == .PlayingContinuousScrolling {
 				if !update_player(&player, deltaTime) {
 					currentState = .GameOverScreen;
