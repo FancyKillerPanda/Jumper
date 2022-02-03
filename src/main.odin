@@ -117,6 +117,8 @@ main :: proc() {
 						} else if currentState == .GameOverScreen {
 							reset_game(renderer, &player);
 							currentState = .StartScreen;
+						} else if currentState == .StartScreen {
+							running = false;
 						}
 						
 					case sdl.Scancode.RETURN:
