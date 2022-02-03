@@ -17,7 +17,7 @@ Platform :: struct {
 }
 
 create_platform :: proc(renderer: ^sdl.Renderer, position: Vector2, dimensions: Vector2) -> (platform: Platform) {
-	platform.texture = img.LoadTexture(renderer, "res/platform.png");
+	platform.texture = img.LoadTexture(renderer, "res/platforms/platform.png");
 	if platform.texture == nil {
 		printf("Error: Failed to load platform texture.\n");
 		return;

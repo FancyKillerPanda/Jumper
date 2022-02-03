@@ -8,7 +8,7 @@ import img "vendor:sdl2/image"
 CLOUD_MIN_VELOCITY :: 75.0;
 CLOUD_MAX_VELOCITY :: 125.0;
 
-CLOUD_TEXTURE_FILEPATHS: [] cstring = { "res/cloud.png", "res/cloud_with_friends.png" };
+CLOUD_TEXTURE_FILEPATHS: [] cstring = { "res/clouds/cloud.png", "res/clouds/cloud_with_friends.png" };
 clouds: [2] Cloud;
 
 Cloud :: struct {

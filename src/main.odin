@@ -45,8 +45,8 @@ main :: proc() {
 	window, renderer, success := create_window();
 	if !success do return;
 
-	titleFont := ttf.OpenFont("res/Cyber.ttf", 100);
-	helpFont := ttf.OpenFont("res/LTWaveUI.ttf", 32);
+	titleFont := ttf.OpenFont("res/fonts/Cyber.ttf", 100);
+	helpFont := ttf.OpenFont("res/fonts/LTWaveUI.ttf", 32);
 	if titleFont == nil || helpFont == nil {
 		printf("Error: Failed to open font. Message: '{}'\n", sdl.GetError());
 		return;
