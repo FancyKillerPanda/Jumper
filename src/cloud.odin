@@ -8,6 +8,7 @@ import img "vendor:sdl2/image"
 CLOUD_MIN_VELOCITY :: 75.0;
 CLOUD_MAX_VELOCITY :: 125.0;
 
+CLOUD_TEXTURE_FILEPATHS: [] cstring = { "res/cloud.png", "res/cloud_with_friends.png" };
 clouds: [2] Cloud;
 
 Cloud :: struct {
@@ -27,7 +28,7 @@ init_clouds :: proc(renderer: ^sdl.Renderer) {
 
 init_random_cloud :: proc(renderer: ^sdl.Renderer, cloud: ^Cloud) {
 	cloud.renderer = renderer;
-	cloud.texture = img.LoadTexture(renderer, "res/cloud.png");
+	cloud.texture = img.LoadTexture(renderer, CLOUD_TEXTURE_FILEPATHS[rand.uint32() % cast(u32) len(CLOUD_TEXTURE_FILEPATHS)]);
 	if cloud.texture == nil {
 		printf("Error: Failed to load cloud texture.\n");
 		return;

@@ -54,6 +54,7 @@ main :: proc() {
 	jumperText := create_text(renderer, titleFont, "JUMPER");
 	helpText := create_text(renderer, helpFont, "Left/right arrows to move, space to jump!");
 	modeButtons := create_button_group(renderer, helpFont, { "Normal Mode", "Continuous Scrolling" });
+	set_button_group_colours(&modeButtons, { 255, 255, 255, 255 }, { 180, 0, 255, 255 }, { 90, 0, 127, 255 });
 	
 	pausedText := create_text(renderer, titleFont, "PAUSED");
 	pausedHelpText := create_text(renderer, helpFont, "Press escape to resume...");
