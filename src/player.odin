@@ -41,7 +41,7 @@ create_player :: proc(renderer: ^sdl.Renderer) -> Player {
 	init_sprite_sheet(player.idleSpriteSheet, renderer, "res/player/idle_spritesheet.png", player.dimensions,
 					  4, { 0, 1, 0, 1, 0, 1, 0, 3, 0, 1, 0, 1, 0, 1, 0, 1, 2, 3, 0, 1, 0, 1, 0, 1, 0, 3 }, 150);
 	init_sprite_sheet(player.jumpPowerSpriteSheet, renderer, "res/player/jump_power_spritesheet.png", player.dimensions,
-					  4, { 0, 1, 2, 3 }, 0);
+					  10, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, 0);
 
 	player.currentSpriteSheet = player.idleSpriteSheet;
 	
@@ -145,15 +145,16 @@ update_player :: proc(using player: ^Player, deltaTime: f64) -> bool {
 			jumpPowerFraction := (jumpPower - PLAYER_MIN_JUMP_POWER) / (PLAYER_MAX_JUMP_POWER - PLAYER_MIN_JUMP_POWER);
 			currentSpriteSheet = jumpPowerSpriteSheet;
 
-			if jumpPowerFraction <= 0.25 {
-				sprite_sheet_set_frame(jumpPowerSpriteSheet, 0);
-			} else if jumpPowerFraction <= 0.5 {
-				sprite_sheet_set_frame(jumpPowerSpriteSheet, 1);
-			} else if jumpPowerFraction <= 0.75 {
-				sprite_sheet_set_frame(jumpPowerSpriteSheet, 2);
-			} else {
-				sprite_sheet_set_frame(jumpPowerSpriteSheet, 3);
-			}
+			if 		jumpPowerFraction <= 0.1 	do sprite_sheet_set_frame(jumpPowerSpriteSheet, 0);
+			else if	jumpPowerFraction <= 0.2 	do sprite_sheet_set_frame(jumpPowerSpriteSheet, 1);
+			else if	jumpPowerFraction <= 0.3 	do sprite_sheet_set_frame(jumpPowerSpriteSheet, 2);
+			else if	jumpPowerFraction <= 0.4 	do sprite_sheet_set_frame(jumpPowerSpriteSheet, 3);
+			else if	jumpPowerFraction <= 0.5 	do sprite_sheet_set_frame(jumpPowerSpriteSheet, 4);
+			else if	jumpPowerFraction <= 0.6 	do sprite_sheet_set_frame(jumpPowerSpriteSheet, 5);
+			else if	jumpPowerFraction <= 0.7 	do sprite_sheet_set_frame(jumpPowerSpriteSheet, 6);
+			else if	jumpPowerFraction <= 0.8 	do sprite_sheet_set_frame(jumpPowerSpriteSheet, 7);
+			else if	jumpPowerFraction <= 0.9 	do sprite_sheet_set_frame(jumpPowerSpriteSheet, 8);
+			else 								do sprite_sheet_set_frame(jumpPowerSpriteSheet, 9);
 		} else {
 			jumpPower = PLAYER_MIN_JUMP_POWER;
 		}
