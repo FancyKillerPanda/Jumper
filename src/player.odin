@@ -36,7 +36,7 @@ create_player :: proc(renderer: ^sdl.Renderer) -> Player {
 	player.dimensions = Vector2 { 45, 75 };
 	
 	player.idleSpriteSheet = new(SpriteSheet);
-	init_sprite_sheet(player.idleSpriteSheet, renderer, "res/player/spritesheet.png", player.dimensions,
+	init_sprite_sheet(player.idleSpriteSheet, renderer, "res/player/idle_spritesheet.png", player.dimensions,
 					  4, { 0, 1, 0, 1, 0, 1, 0, 3, 0, 1, 0, 1, 0, 1, 0, 1, 2, 3, 0, 1, 0, 1, 0, 1, 0, 3 }, 150);
 
 	player.currentSpriteSheet = player.idleSpriteSheet;
