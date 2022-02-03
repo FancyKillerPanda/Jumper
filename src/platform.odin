@@ -5,6 +5,10 @@ import "core:math/rand"
 import sdl "vendor:sdl2"
 import img "vendor:sdl2/image"
 
+PLATFORM_MIN_MOVE_DISTANCE :: 50;
+PLATFORM_MIN_VELOCITY :: 50.0;
+PLATFORM_MAX_VELOCITY :: 120.0;
+
 platforms: [dynamic] Platform;
 
 Platform :: struct {
@@ -14,10 +18,34 @@ Platform :: struct {
 	
 	position: Vector2,
 	dimensions: Vector2,
+
+	moving: bool,
+	movingFrom: Vector2,
+	movingTo: Vector2,
+	velocity: Vector2, // y component is always 0
 }
 
-create_platform :: proc(renderer: ^sdl.Renderer, position: Vector2, dimensions: Vector2) -> (platform: Platform) {
-	platform.texture = img.LoadTexture(renderer, "res/platforms/platform.png");
+create_platform :: proc(renderer: ^sdl.Renderer, position: Vector2, dimensions: Vector2, potentiallyMoving := true) -> (platform: Platform) {
+	if potentiallyMoving && rand.uint32() % 4 == 0 {
+		platform.moving = true;
+		platform.velocity.x = rand.float64_range(PLATFORM_MIN_VELOCITY, PLATFORM_MAX_VELOCITY);
+		platform.movingFrom = { rand.float64_range(dimensions.x / 2, SCREEN_WIDTH - (dimensions.x / 2)), position.y };
+		platform.movingTo = { rand.float64_range(dimensions.x / 2, SCREEN_WIDTH - (dimensions.x / 2)), position.y };
+
+		// We want movingFrom to be the left side
+		if platform.movingFrom.x > platform.movingTo.x {
+			temp := platform.movingFrom;
+			platform.movingFrom = platform.movingTo;
+			platform.movingTo = temp;
+		}
+
+		platform.position = platform.movingFrom;
+		platform.texture = img.LoadTexture(renderer, "res/platforms/moving_platform.png");
+	} else {
+		platform.position = position;
+		platform.texture = img.LoadTexture(renderer, "res/platforms/platform.png");
+	}
+	
 	if platform.texture == nil {
 		printf("Error: Failed to load platform texture.\n");
 		return;
@@ -25,10 +53,21 @@ create_platform :: proc(renderer: ^sdl.Renderer, position: Vector2, dimensions: 
 	
 	platform.flip = sdl.RendererFlip(rand.uint32() % 3);
 	platform.angle = cast(f64) (rand.uint32() % 2) * 180.0;
-	platform.position = position;
 	platform.dimensions = dimensions;
 
 	return;
+}
+
+update_platforms :: proc(deltaTime: f64) {
+	for platform in &platforms {
+		if platform.moving {
+			platform.position += platform.velocity * deltaTime;
+
+			if platform.position.x < platform.movingFrom.x || platform.position.x > platform.movingTo.x {
+				platform.velocity.x *= -1.0;
+			}
+		}
+	}
 }
 
 draw_platforms :: proc(renderer: ^sdl.Renderer) {
@@ -52,9 +91,11 @@ random_platform :: proc(renderer: ^sdl.Renderer) -> (platform: Platform) {
 		{ rand.float64_range(SCREEN_WIDTH / 8, SCREEN_WIDTH / 4), rand.float64_range(SCREEN_HEIGHT / 32, SCREEN_HEIGHT / 24) },
 	);
 
-	platform.position.x = rand.float64_range(platform.dimensions.x / 2, SCREEN_WIDTH - (platform.dimensions.x / 2));
-	platform.position.y = rand.float64_range((-SCREEN_HEIGHT / 4) - (platform.dimensions.y / 2), -platform.dimensions.y / 2);
-	
+	if !platform.moving { // Moving platforms will have a random position assigned
+		platform.position.x = rand.float64_range(platform.dimensions.x / 2, SCREEN_WIDTH - (platform.dimensions.x / 2));
+		platform.position.y = rand.float64_range((-SCREEN_HEIGHT / 4) - (platform.dimensions.y / 2), -platform.dimensions.y / 2);
+	}
+
 	for otherPlatform in &platforms {
 		if platforms_collide(&platform, &otherPlatform) {
 			sdl.DestroyTexture(platform.texture);

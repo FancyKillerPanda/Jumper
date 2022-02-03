@@ -158,6 +158,8 @@ main :: proc() {
 			}
 
 			if currentState == .PlayingNormal || currentState == .PlayingContinuousScrolling {
+				update_platforms(deltaTime);
+				
 				if !update_player(&player, deltaTime) {
 					currentState = .GameOverScreen;
 					free_text(gameOverScoreText);
@@ -214,6 +216,7 @@ reset_game :: proc(renderer: ^sdl.Renderer, player: ^Player) {
 		renderer,
 		{ SCREEN_WIDTH / 2, SCREEN_HEIGHT - (SCREEN_HEIGHT / 32) },
 		{ SCREEN_WIDTH + (player.dimensions.x * 2), SCREEN_HEIGHT / 16 },
+		false,
 	));
 
 	for i in 0..3 {
