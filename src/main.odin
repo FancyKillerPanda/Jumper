@@ -290,7 +290,15 @@ quit_dependencies :: proc() {
 }
 
 create_window :: proc() -> (window: ^sdl.Window, renderer: ^sdl.Renderer, success: bool) {
-	window = sdl.CreateWindow("Jumper", 500, 50, SCREEN_WIDTH, SCREEN_HEIGHT, nil);
+	displayMode: sdl.DisplayMode;
+	sdl.GetCurrentDisplayMode(0, &displayMode);
+
+	if displayMode.h < 960 {
+		window = sdl.CreateWindow("Jumper", 500, 50, 510, 680, nil);
+	} else {
+		window = sdl.CreateWindow("Jumper", 500, 50, SCREEN_WIDTH, SCREEN_HEIGHT, nil);
+	}
+	
 	if window == nil {
 		printf("Error: Failed to create window. Message: '{}'\n", sdl.GetError());
 		return nil, nil, false;
@@ -302,6 +310,7 @@ create_window :: proc() -> (window: ^sdl.Window, renderer: ^sdl.Renderer, succes
 		return nil, nil, false;
 	}
 
+	sdl.RenderSetLogicalSize(renderer, SCREEN_WIDTH, SCREEN_HEIGHT);
 	sdl.SetRenderDrawBlendMode(renderer, sdl.BlendMode.BLEND);
 
 	return window, renderer, true;
