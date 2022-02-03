@@ -25,10 +25,11 @@ GameState :: enum {
 	PlayingNormal,
 	PlayingContinuousScrolling,
 	Paused,
+	GameOverScreen,
 }
 
 currentState: GameState;
-gameMode: GameState;
+gameMode: GameState = .PlayingNormal;
 scrollSpeed: f64;
 
 currentScore: u64;
@@ -44,7 +45,7 @@ main :: proc() {
 	window, renderer, success := create_window();
 	if !success do return;
 
-	titleFont := ttf.OpenFont("res/Cyber.ttf", 128);
+	titleFont := ttf.OpenFont("res/Cyber.ttf", 100);
 	helpFont := ttf.OpenFont("res/LTWaveUI.ttf", 32);
 	if titleFont == nil || helpFont == nil {
 		printf("Error: Failed to open font. Message: '{}'\n", sdl.GetError());
@@ -58,6 +59,10 @@ main :: proc() {
 	
 	pausedText := create_text(renderer, titleFont, "PAUSED");
 	pausedHelpText := create_text(renderer, helpFont, "Press escape to resume...");
+	
+	gameOverText := create_text(renderer, titleFont, "GAME OVER");
+	gameOverScoreText := new(Text); // Will be initialised later
+	playAgainText := create_text(renderer, helpFont, "Play again: Enter    |    Main menu: Escape");
 	
 	// Loads the highscore if possible
 	highScoreData, openSuccess := os.read_entire_file(HIGH_SCORE_FILEPATH);
@@ -109,6 +114,15 @@ main :: proc() {
 							currentState = gameMode;
 						} else if currentState == gameMode {
 							currentState = .Paused;
+						} else if currentState == .GameOverScreen {
+							reset_game(renderer, &player);
+							currentState = .StartScreen;
+						}
+						
+					case sdl.Scancode.RETURN:
+						if currentState == .GameOverScreen {
+							reset_game(renderer, &player);
+							currentState = gameMode;
 						}
 				}
 
@@ -139,20 +153,18 @@ main :: proc() {
 			update_clouds(deltaTime);
 			
 			if currentState == .PlayingNormal || currentState == .PlayingContinuousScrolling {
-				update_player(&player, deltaTime);
+				if !update_player(&player, deltaTime) {
+					currentState = .GameOverScreen;
+					free_text(gameOverScoreText);
+					gameOverScoreText^ = create_text(renderer, helpFont, strings.clone_to_cstring(fmt.tprintf("Score: {} (Highscore: {})", currentScore, get_current_mode_high_score())));
+				}
 			}
 		}
 
 		sdl.SetRenderDrawColor(renderer, 0, 255, 255, 255);
 		sdl.RenderClear(renderer);
 
-		highScore: u64;
-		if gameMode == .PlayingNormal {
-			highScore = highScoreNormalMode;
-		} else if gameMode == .PlayingContinuousScrolling {
-			highScore = highScoreContinuousScrolling;
-		}
-		
+		highScore := get_current_mode_high_score();
 		currentScoreText := create_text(renderer, helpFont, strings.clone_to_cstring(fmt.tprintf("Score: {} (Highscore: {})", currentScore, highScore), context.temp_allocator), { 180, 0, 255, 255 });
 		defer free_text(&currentScoreText);
 		
@@ -162,7 +174,7 @@ main :: proc() {
 		draw_player(&player);
 
 		// Draws a dark overlay
-		if currentState == .StartScreen || currentState == .Paused {
+		if currentState == .StartScreen || currentState == .Paused || currentState == .GameOverScreen {
 			fillRect: sdl.Rect = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT }
 			
 			sdl.SetRenderDrawColor(renderer, 50, 50, 50, 200);
@@ -177,6 +189,10 @@ main :: proc() {
 		} else if currentState == .Paused {
 			draw_text(renderer, &pausedText, SCREEN_WIDTH / 2, SCREEN_HEIGHT * 4 / 9);
 			draw_text(renderer, &pausedHelpText, SCREEN_WIDTH / 2, SCREEN_HEIGHT * 5 / 9);
+		} else if currentState == .GameOverScreen {
+			draw_text(renderer, &gameOverText, SCREEN_WIDTH / 2, SCREEN_HEIGHT * 3 / 9);
+			draw_text(renderer, gameOverScoreText, SCREEN_WIDTH / 2, SCREEN_HEIGHT * 4 / 9);
+			draw_text(renderer, &playAgainText, SCREEN_WIDTH / 2, SCREEN_HEIGHT * 6 / 9);
 		}
 
 		sdl.RenderPresent(renderer);
@@ -202,7 +218,6 @@ reset_game :: proc(renderer: ^sdl.Renderer, player: ^Player) {
 	player.position = { SCREEN_WIDTH / 2, platforms[0].position.y - (platforms[0].dimensions.y / 2) - (player.dimensions.y / 2)};
 
 	currentState = .StartScreen;
-	gameMode = .PlayingNormal; // This will be changed when it is selected by the user
 	scrollSpeed = 0;
 	currentScore = 0;
 }
@@ -221,6 +236,16 @@ add_to_score :: proc(amount: u64) {
 	} else {
 		assert(false);
 	}
+}
+
+get_current_mode_high_score :: proc() -> (highScore: u64) {
+	if gameMode == .PlayingNormal {
+		highScore = highScoreNormalMode;
+	} else if gameMode == .PlayingContinuousScrolling {
+		highScore = highScoreContinuousScrolling;
+	}
+
+	return;
 }
 
 init_dependencies :: proc() -> bool {

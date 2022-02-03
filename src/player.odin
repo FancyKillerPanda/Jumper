@@ -44,7 +44,7 @@ create_player :: proc(renderer: ^sdl.Renderer) -> Player {
 	return player;
 }
 
-update_player :: proc(using player: ^Player, deltaTime: f64) {
+update_player :: proc(using player: ^Player, deltaTime: f64) -> bool {
 	acceleration = { 0, PLAYER_GRAVITY };
 	
 	isLeftPressed := keysPressed[sdl.Scancode.LEFT];
@@ -101,8 +101,7 @@ update_player :: proc(using player: ^Player, deltaTime: f64) {
 
 	// Player can't go below the screen
 	if position.y > SCREEN_HEIGHT - (dimensions.y / 2) {
-		reset_game(player.renderer, player);
-		return;
+		return false;
 	}
 
 	// Moves everything on screen downward if we go into the top quarter
@@ -146,6 +145,8 @@ update_player :: proc(using player: ^Player, deltaTime: f64) {
 
 	// Changes the texture if necessary
 	update_sprite_sheet(currentSpriteSheet, deltaTime);
+
+	return true;
 }
 
 draw_player :: proc(using player: ^Player) {
