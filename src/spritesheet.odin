@@ -20,6 +20,7 @@ SpriteSheet :: struct {
 	animationDelayMs: u32,
 }
 
+// If the animationDelayMs is 0, the animation will not progress automatically
 init_sprite_sheet :: proc(spriteSheet: ^SpriteSheet, renderer: ^sdl.Renderer, filepath: cstring, subrectDimensions: Vector2, 
 						  numberOfSubrects: u32, animationOrder: [] u32, animationDelayMs: u32) {
 	spriteSheet.renderer = renderer;
@@ -44,11 +45,9 @@ init_sprite_sheet :: proc(spriteSheet: ^SpriteSheet, renderer: ^sdl.Renderer, fi
 update_sprite_sheet :: proc(using spriteSheet: ^SpriteSheet, deltaTime: f64) {
 	timeSinceLastTextureChange += deltaTime;
 
-	if timeSinceLastTextureChange >= (cast(f64) animationDelayMs / 1000.0) {
+	if animationDelayMs != 0.0 && timeSinceLastTextureChange >= (cast(f64) animationDelayMs / 1000.0) {
 		timeSinceLastTextureChange = 0;
-		
-		animationCurrentIndex += 1;
-		animationCurrentIndex %= cast(u32) len(animationOrder);
+		sprite_sheet_next_frame(spriteSheet);
 	}
 }
 
@@ -65,6 +64,16 @@ draw_sprite_sheet :: proc(using spriteSheet: ^SpriteSheet, position: Vector2, ho
 	if horizontalFlip do flip = sdl.RendererFlip.HORIZONTAL;
 	
 	sdl.RenderCopyEx(renderer, texture, &subrect, &rect, 0, nil, flip);
+}
+
+sprite_sheet_next_frame :: proc(using spriteSheet: ^SpriteSheet) {
+	animationCurrentIndex += 1;
+	animationCurrentIndex %= cast(u32) len(animationOrder);
+}
+
+sprite_sheet_set_frame :: proc(using spriteSheet: ^SpriteSheet, frameIndex: u32) {
+	assert(frameIndex < cast(u32) len(animationOrder));
+	animationCurrentIndex = frameIndex;
 }
 
 // TODO(fkp): Allow multiple lines of images

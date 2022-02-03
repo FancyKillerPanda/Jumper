@@ -19,6 +19,7 @@ Player :: struct {
 	
 	currentSpriteSheet: ^SpriteSheet,
 	idleSpriteSheet: ^SpriteSheet,
+	jumpPowerSpriteSheet: ^SpriteSheet,
 	
 	position: Vector2,
 	dimensions: Vector2,
@@ -36,8 +37,11 @@ create_player :: proc(renderer: ^sdl.Renderer) -> Player {
 	player.dimensions = Vector2 { 45, 75 };
 	
 	player.idleSpriteSheet = new(SpriteSheet);
+	player.jumpPowerSpriteSheet = new(SpriteSheet);
 	init_sprite_sheet(player.idleSpriteSheet, renderer, "res/player/idle_spritesheet.png", player.dimensions,
 					  4, { 0, 1, 0, 1, 0, 1, 0, 3, 0, 1, 0, 1, 0, 1, 0, 1, 2, 3, 0, 1, 0, 1, 0, 1, 0, 3 }, 150);
+	init_sprite_sheet(player.jumpPowerSpriteSheet, renderer, "res/player/jump_power_spritesheet.png", player.dimensions,
+					  4, { 0, 1, 2, 3 }, 0);
 
 	player.currentSpriteSheet = player.idleSpriteSheet;
 	
@@ -136,6 +140,20 @@ update_player :: proc(using player: ^Player, deltaTime: f64) -> bool {
 			if jumpPower > PLAYER_MAX_JUMP_POWER {
 				jumpPower = PLAYER_MAX_JUMP_POWER;
 			}
+
+			// Changes the animation
+			jumpPowerFraction := (jumpPower - PLAYER_MIN_JUMP_POWER) / (PLAYER_MAX_JUMP_POWER - PLAYER_MIN_JUMP_POWER);
+			currentSpriteSheet = jumpPowerSpriteSheet;
+
+			if jumpPowerFraction <= 0.25 {
+				sprite_sheet_set_frame(jumpPowerSpriteSheet, 0);
+			} else if jumpPowerFraction <= 0.5 {
+				sprite_sheet_set_frame(jumpPowerSpriteSheet, 1);
+			} else if jumpPowerFraction <= 0.75 {
+				sprite_sheet_set_frame(jumpPowerSpriteSheet, 2);
+			} else {
+				sprite_sheet_set_frame(jumpPowerSpriteSheet, 3);
+			}
 		} else {
 			jumpPower = PLAYER_MIN_JUMP_POWER;
 		}
@@ -157,6 +175,11 @@ draw_player :: proc(using player: ^Player) {
 player_jump :: proc(using player: ^Player) {
 	if is_player_standing_on_platform(player) {
 		velocity.y = -jumpPower;
+		jumpPower = PLAYER_MIN_JUMP_POWER;
+
+		// TODO(fkp): Jumping animation
+		currentSpriteSheet = idleSpriteSheet;
+		sprite_sheet_set_frame(idleSpriteSheet, 0);
 	}
 }
 
